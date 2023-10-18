@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quadratic Solver</title>
+</head>
+<body>
+    <h1>Quadratic Equation Solver</h1>
+
+    <label for="valueA">A:</label><br>
+    <input type="number" id="valueA" name="valueA"><br>
+
+    <label for="valueB">B:</label><br>
+    <input type="number" id="valueB" name="valueB"><br>
+
+    <label for="valueC">C:</label><br>
+    <input type="number" id="valueC" name="valueC"><br>
+
+    <button onclick="calculate()">Calculate</button>
+
+    <h2>Results</h2>
+    <div id='output'></div>
+    <div id='discriminant'></div>
+  
+    <script>
+        function calculate() {
+            var a = document.getElementById('valueA').value;
+            var b = document.getElementById('valueB').value;
+            var c = document.getElementById('valueC').value;
+            
+            var output = document.getElementById('output');
+            var discriminant = document.getElementById('discriminant');
+            
+            var d = Math.pow(b, 2) - (4 * a * c);
+            discriminant.innerHTML = 'Discriminant Value: ' + d;
+
+            if (d < 0)
+                output.innerHTML = 'No real solution';
+            else{
+                var sqrt_val = Math.sqrt(Math.abs(d)); 
+                var sol1 = (-b + sqrt_val) / (2 * a);
+                var sol2 = (-b - sqrt_val) / (2 * a);
+                output.innerHTML = 'Solutions are: ' + sol1 + ' and ' + sol2;
+            }
+
+        }
+    </script>
+</body>
+</html>
