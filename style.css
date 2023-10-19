@@ -1,0 +1,40 @@
+        body {
+            background-color: #f2f2f2;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            color: #4a4a4a;
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        h2 {
+            color: #6d6d6d;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+        }
+
+        .project {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 2rem;
+            padding: 2rem;
+            border-radius: 10px;
+        }
+
+        a {
+            text-decoration: none;
+            color: #008CBA;
+        }
+
+        a:hover {
+            color: #005580;
+        }
