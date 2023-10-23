@@ -1,59 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Matter.js Draggable Circle with Edge Colliders</title>
+  <title>Draggable Circle with Matter.js</title>
+  <style>body {margin: 0; overflow: hidden;} </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
 </head>
 <body>
-  <div id="container"></div>
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.js"></script>
-  
-  <script>
-    // Initialize Matter.js
-    const { Engine, Render, World, Bodies, Mouse, MouseConstraint, Composites, Constraint, Common, Events, Body, Bounds } = Matter;
 
-    const engine = Engine.create();
-    const render = Render.create({
-      element: document.getElementById("container"),
-      engine: engine,
-    });
+<canvas id="canvas"></canvas>
 
-    // Create a circle
-    const circle = Bodies.circle(200, 200, 50, {
-      restitution: 0.7, // Bounciness
-    });
+<script>
+var Engine = Matter.Engine,
+    Render = Matter.Render,
+    World = Matter.World,
+    Bodies = Matter.Bodies,
+    Mouse = Matter.Mouse,
+    MouseConstraint = Matter.MouseConstraint;
 
-    // Create edge colliders
-    const ground = Bodies.rectangle(400, 600, 800, 50, { isStatic: true });
-    const leftWall = Bodies.rectangle(0, 300, 50, 600, { isStatic: true });
-    const rightWall = Bodies.rectangle(800, 300, 50, 600, { isStatic: true });
-    const ceiling = Bodies.rectangle(400, 0, 800, 50, { isStatic: true });
+var engine = Engine.create();
 
-    // Add all bodies to the world
-    World.add(engine.world, [circle, ground, leftWall, rightWall, ceiling]);
+var render = Render.create({
+  element: document.body,
+  engine: engine,
+  options: {
+    width: Math.min(document.documentElement.clientWidth, window.innerWidth || 0),
+    height: Math.min(document.documentElement.clientHeight, window.innerHeight || 0),
+    wireframes: false
+  }
+});
 
-    // Create a mouse
-    const mouse = Mouse.create(render.canvas);
+var circle = Bodies.circle(300, 300, 50, {
+  density: 0.04,
+  frictionAir: 0.01,
+});
 
-    // Create a mouse constraint
-    const mouseConstraint = MouseConstraint.create(engine, {
-      mouse: mouse,
-      constraint: {
-        stiffness: 0.2,
-        render: {
-          visible: false,
-        },
-      },
-    });
+World.add(engine.world, [
+  circle,
+  Bodies.rectangle(render.options.width / 2, 0, render.options.width, 50, { isStatic: true }),
+  Bodies.rectangle(render.options.width / 2, render.options.height, render.options.width, 50, { isStatic: true }),
+  Bodies.rectangle(0, render.options.height / 2, 50, render.options.height, { isStatic: true }),
+  Bodies.rectangle(render.options.width, render.options.height / 2, 50, render.options.height, { isStatic: true})
+]);
 
-    // Add the mouse constraint to the world
-    World.add(engine.world, mouseConstraint);
+MouseConstraint.create(engine, {
+  mouse: Mouse.create(render.canvas),
+  constraint: {
+    stiffness: 0.2,
+    render: {
+      visible: false
+    }
+  }
+});
 
-    // Start the engine
-    Engine.run(engine);
+Engine.run(engine);
 
-    // Start the renderer
-    Render.run(render);
-  </script>
+Render.run(render);
+</script>
+
 </body>
 </html>
