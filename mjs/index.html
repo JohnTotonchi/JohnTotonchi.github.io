@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Draggable Circle with Matter.js</title>
-  <style>body {margin: 0; overflow: hidden;} </style>
+  <title>Interactive Matter.js page</title>
+  <style>
+    body {margin: 0; overflow: hidden;}
+  </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.14.2/matter.min.js"></script>
 </head>
 <body>
-
 <canvas id="canvas"></canvas>
-
 <script>
 var Engine = Matter.Engine,
     Render = Matter.Render,
@@ -33,17 +33,17 @@ var circle = Bodies.circle(300, 300, 50, {
   density: 0.04,
   frictionAir: 0.01,
 });
-
 World.add(engine.world, [
   circle,
   Bodies.rectangle(render.options.width / 2, 0, render.options.width, 50, { isStatic: true }),
   Bodies.rectangle(render.options.width / 2, render.options.height, render.options.width, 50, { isStatic: true }),
   Bodies.rectangle(0, render.options.height / 2, 50, render.options.height, { isStatic: true }),
-  Bodies.rectangle(render.options.width, render.options.height / 2, 50, render.options.height, { isStatic: true})
+  Bodies.rectangle(render.options.width, render.options.height / 2, 50, render.options.height, { isStatic: true })
 ]);
 
-MouseConstraint.create(engine, {
-  mouse: Mouse.create(render.canvas),
+var mouse = Mouse.create(render.canvas),
+mouseConstraint = MouseConstraint.create(engine, {
+  mouse: mouse,
   constraint: {
     stiffness: 0.2,
     render: {
@@ -52,10 +52,23 @@ MouseConstraint.create(engine, {
   }
 });
 
+World.add(engine.world, mouseConstraint);
+render.mouse = mouse;
+
 Engine.run(engine);
-
 Render.run(render);
-</script>
 
+document.body.addEventListener('keydown', function(e) {
+  if (e.keyCode === 69) {  // If 'E' key is pressed
+    World.add(engine.world, Bodies.rectangle(Math.random() * render.options.width, Math.random() * render.options.height, 50, 50));
+  }
+  if (e.keyCode === 82) {  // If 'R' key is pressed
+    var all_bodies = World.allBodies(engine.world);
+    for (var i = all_bodies.length - 1; i >= 0; --i) {
+      World.remove(engine.world, all_bodies[i]);
+    }
+  }
+});
+</script>
 </body>
 </html>
