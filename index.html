@@ -1,66 +1,83 @@
 <!DOCTYPE html>
 <html>
 <head>
-   <!-- <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            color: #4a4a4a;
-            text-align: center;
-            padding: 3rem 0;
-        }
-
-        h2 {
-            color: #6d6d6d;
-            text-align: center;
-            padding: 1rem 0;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
-        }
-
-        .project {
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 2rem;
-            padding: 2rem;
-            border-radius: 10px;
-        }
-
-        a {
-            text-decoration: none;
-            color: #008CBA;
-        }
-
-        a:hover {
-            color: #005580;
-        }
-    </style> -->
-<link href="/style.css" rel="stylesheet">
+  <title>Matter.js Square and Clear</title>
 </head>
 <body>
-    <h1>John Totonchi</h1>
-    <h2>Projects</h2>
-    <div class="callout-info">
-        <div class="project">
-            <a href="/bf">Basic "Bruteforce" generator</a>
-            <br>
-           <br>
-            <a href="/qf">Quadratic Formula + Discriminant solver</a>
-           <br>
-           <br>
-           <a href="/re">Simplifying Radical Expressions</a>
-           <br>
-           <br>
-           <a href="/ce">Alpha & Beta Decay Guide</a>
-        </div>
-    </div>
+  <div id="container"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.js"></script>
+  
+  <script>
+    // Initialize Matter.js
+    const { Engine, Render, World, Bodies, Mouse, MouseConstraint, Events, Composite } = Matter;
+
+    const engine = Engine.create();
+    const render = Render.create({
+      element: document.getElementById("container"),
+      engine: engine,
+    });
+
+    // Create a circle
+    const circle = Bodies.circle(200, 200, 50, {
+      restitution: 0.7, // Bounciness
+    });
+
+    // Create edge colliders
+    const ground = Bodies.rectangle(400, 600, 800, 50, { isStatic: true });
+    const leftWall = Bodies.rectangle(0, 300, 50, 600, { isStatic: true });
+    const rightWall = Bodies.rectangle(800, 300, 50, 600, { isStatic: true });
+    const ceiling = Bodies.rectangle(400, 0, 800, 50, { isStatic: true });
+
+    // Add all bodies to the world
+    World.add(engine.world, [circle, ground, leftWall, rightWall, ceiling]);
+
+    // Create a mouse
+    const mouse = Mouse.create(render.canvas);
+
+    // Create a mouse constraint
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.2,
+        render: {
+          visible: false,
+        },
+      },
+    });
+
+    // Add the mouse constraint to the world
+    World.add(engine.world, mouseConstraint);
+
+    // Function to spawn a square when "E" key is pressed
+    function spawnSquare() {
+      const square = Bodies.rectangle(
+        Math.random() * 800, // Random x-coordinate
+        0, // Start at the top of the window
+        50, // Width of the square
+        50 // Height of the square
+      );
+      World.add(engine.world, square);
+    }
+
+    // Event listener for the "E" key
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "e" || event.key === "E") {
+        spawnSquare();
+      }
+      if (event.key === "r" || event.key === "R") {
+        // Clear all rigid bodies (except the edges)
+        Composite.clear(engine.world, false);
+        // Re-add the edge colliders
+        World.add(engine.world, [ground, leftWall, rightWall, ceiling]);
+      }
+    });
+
+    // Start the engine
+    Engine.run(engine);
+
+    // Start the renderer
+    Render.run(render);
+  </script>
 </body>
 </html>
