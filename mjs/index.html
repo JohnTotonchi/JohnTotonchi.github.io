@@ -15,7 +15,8 @@ var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
     Mouse = Matter.Mouse,
-    MouseConstraint = Matter.MouseConstraint;
+    MouseConstraint = Matter.MouseConstraint,
+    Composites = Matter.Composites;
 
 var engine = Engine.create();
 
@@ -54,7 +55,6 @@ mouseConstraint = MouseConstraint.create(engine, {
 
 World.add(engine.world, mouseConstraint);
 render.mouse = mouse;
-
 Engine.run(engine);
 Render.run(render);
 
@@ -67,6 +67,10 @@ document.body.addEventListener('keydown', function(e) {
     for (var i = all_bodies.length - 1; i >= 0; --i) {
       World.remove(engine.world, all_bodies[i]);
     }
+  }
+  if (e.keyCode === 70) {  // If 'F' key is pressed
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 3, 3, 0, 0, true, 30);
+    World.add(engine.world, softBody);
   }
 });
 </script>
