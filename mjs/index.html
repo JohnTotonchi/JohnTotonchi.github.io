@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Matter.js Draggable Circle with Edge Colliders</title>
+</head>
+<body>
+  <div id="container"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.17.1/matter.js"></script>
+  
+  <script>
+    // Initialize Matter.js
+    const { Engine, Render, World, Bodies, Mouse, MouseConstraint, Composites, Constraint, Common, Events, Body, Bounds } = Matter;
+
+    const engine = Engine.create();
+    const render = Render.create({
+      element: document.getElementById("container"),
+      engine: engine,
+    });
+
+    // Create a circle
+    const circle = Bodies.circle(200, 200, 50, {
+      restitution: 0.7, // Bounciness
+    });
+
+    // Create edge colliders
+    const ground = Bodies.rectangle(400, 600, 800, 50, { isStatic: true });
+    const leftWall = Bodies.rectangle(0, 300, 50, 600, { isStatic: true });
+    const rightWall = Bodies.rectangle(800, 300, 50, 600, { isStatic: true });
+    const ceiling = Bodies.rectangle(400, 0, 800, 50, { isStatic: true });
+
+    // Add all bodies to the world
+    World.add(engine.world, [circle, ground, leftWall, rightWall, ceiling]);
+
+    // Create a mouse
+    const mouse = Mouse.create(render.canvas);
+
+    // Create a mouse constraint
+    const mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: {
+        stiffness: 0.2,
+        render: {
+          visible: false,
+        },
+      },
+    });
+
+    // Add the mouse constraint to the world
+    World.add(engine.world, mouseConstraint);
+
+    // Start the engine
+    Engine.run(engine);
+
+    // Start the renderer
+    Render.run(render);
+  </script>
+</body>
+</html>
