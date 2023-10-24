@@ -30,6 +30,12 @@ var render = Render.create({
     wireframes: false
   }
 });
+var particleOptions = { 
+      friction: 0.05,
+      frictionStatic: 0.1,
+      render: { visible: true } 
+};
+
 
 var circle = Bodies.circle(300, 300, 50, {
   density: 0.001,
@@ -49,7 +55,7 @@ mouseConstraint = MouseConstraint.create(engine, {
   constraint: {
     stiffness: 0.2,
     render: {
-      visible: false
+      visible: true
     }
   }
 });
