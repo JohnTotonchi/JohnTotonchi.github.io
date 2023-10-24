@@ -70,7 +70,7 @@ document.body.addEventListener('keydown', function(e) {
     }
   }
   if (e.keyCode === 70) {  // If 'F' key is pressed
-    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 4, 4, false, 5);
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 4, 4, true, 5);
     World.add(engine.world, softBody);
   }
   if (e.keyCode === 80) {  // If 'F' key is pressed
