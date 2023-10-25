@@ -87,7 +87,7 @@ document.body.addEventListener('keydown', function(e) {
     World.add(engine.world, softBody);
   }
   if (e.keyCode === 66) {  // If 'B' key is pressed
-    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 30, 1, 4, 4, true, 6);
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 60, 1, 2, 2, true, 3);
     World.add(engine.world, softBody);
   }
 });
