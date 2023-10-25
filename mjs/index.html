@@ -86,6 +86,10 @@ document.body.addEventListener('keydown', function(e) {
     var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 10, 10, 4, 4, true, 6);
     World.add(engine.world, softBody);
   }
+  if (e.keyCode === 66) {  // If 'B' key is pressed
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 10, 2, 4, 4, true, 6);
+    World.add(engine.world, softBody);
+  }
 });
 </script>
 </body>
