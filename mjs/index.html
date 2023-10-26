@@ -76,14 +76,14 @@ document.body.addEventListener('keydown', function(e) {
     }
   }
   if (e.keyCode === 70) {  // If 'F' key is pressed
-    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 0, 0, false, 24);
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 0.5, 0.5, true, 24);
     World.add(engine.world, softBody)
       render: {
     fillStyle: '#0045FF'
   }
   }
   if (e.keyCode === 80) {  // If 'P' key is pressed
-    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 10, 10, 0, 0, true, 12);
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 10, 10, 0, 0, false, 12);
     World.add(engine.world, softBody);
   }
   if (e.keyCode === 66) {  // If 'B' key is pressed
