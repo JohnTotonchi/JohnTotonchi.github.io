@@ -76,7 +76,7 @@ document.body.addEventListener('keydown', function(e) {
     }
   }
   if (e.keyCode === 70) {  // If 'F' key is pressed
-    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 0, 0, true, 24);
+    var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 5, 5, 0, 0, false, 24);
     World.add(engine.world, softBody)
       render: {
     fillStyle: '#0045FF'
