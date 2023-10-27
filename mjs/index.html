@@ -35,7 +35,7 @@ var render = Render.create({
 
 var circle = Bodies.circle(300, 300, 50, {
   density: 0.001,
-  frictionAir: -1,
+  frictionAir: 0.00001,
 });
 
 World.add(engine.world, [
