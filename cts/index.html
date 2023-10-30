@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Solving by Completing the Square</title>
+
+<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .complete-square {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        background-color: #f9f9f9;
+    }
+</style>
+</head>
+<body>
+    <h1>Solving by Completing the Square</h1>
+
+    <div class="complete-square">
+        <h2>Step-by-step Guide:</h2>
+        <p>1. Write the equation in the form \(ax^2 + bx + c = 0\).</p>
+        <p>2. If a ≠ 1, divide the entire equation by a to make the coefficient of \(x^2\) equal to 1.</p>
+        <p>3. Subtract c from both sides.</p>
+        <p>4. Take half of the coefficient of x, square it, and add it to both sides of the equation.</p>
+        <p>5. Factor the left side of the equation.</p>
+        <p>6. Solve for x via the square root method.</p>
+    </div>
+
+    <div class="complete-square">
+        <h2>Example 1: \(x^2 - 6x + 8 = 0\)</h2>
+        <p>Here, a = 1, b = -6, and c = 8.</p>
+        <p>Subtract 8 from both sides to get: \(x^2 - 6x = -8\).</p>
+        <p>Add \((b/2)^2 = (6/2)^2 = 9\) to both sides: \(x^2 - 6x + 9 = 1\).</p>
+        <p>Factor the left side to: \((x-3)^2 = 1\).</p>
+        <p>Last, solve for x: \(x - 3 = \pm\sqrt{1}\). This gives \(x = 3 \pm 1\), so the solutions are \(x = 2,4\).</p>
+    </div>
+
+    <div class="complete-square">
+        <h2>Example 2: \(2x^2 - 8x + 7 = 0\)</h2>
+        <p>First, divide the equation by 2 to simplify: \(x^2 - 4x + 3.5 = 0\).</p>
+        <p>Subtract 3.5 from both sides: \(x^2 - 4x = -3.5\).</p>
+        <p>Add \((b/2)^2 = (4/2)^2 = 4\) to both sides: \(x^2 - 4x + 4 = 0.5\).</p>
+        <p>Factor the left side: \((x-2)^2 = 0.5\).</p>
+        <p>Solve for x: \(x - 2 = \pm\sqrt{0.5}\). The solutions are \(x = 2 \pm \sqrt{0.5}\).</p>
+    </div>
+</body>
+</html>
