@@ -119,6 +119,11 @@ document.body.addEventListener('keydown', function(e) {
     var softBody = Composites.softBody(Math.random() * render.options.width, Math.random() * render.options.height, 30, 2, 2, 2, true, 8);
     World.add(engine.world, softBody);
   }
+  document.body.addEventListener('keydown', function(e) {
+  if (e.keyCode === 89) {  // If 'Y' key is pressed
+    World.add(engine.world, Bodies.rectangle(Math.random() * render.options.width, Math.random() * render.options.height, 100, 50));
+  }
+
 });
 </script>
 </body>
