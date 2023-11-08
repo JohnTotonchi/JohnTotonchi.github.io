@@ -1,96 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Today's Menu Item</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-  }
-  .content-box {
-    border: 1px solid #fff;
-    padding: 10px;
-    margin-top: 10px;
-    background-color: #fff;
-    font-size: 40px;
-    text-align: center;
-  }
-  .list-item {
-    background-color: #fff;
-    border: 1px solid #fff;
-    padding: 5px;
-    margin: 5px;
-    border-radius: 3px;
-    list-style-type: none; /* Removes bullet points */
-  }
-  ul {
-    padding-left: 0; /* Removes padding that might cause indentation */
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu Items</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .content-box {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #fff;
+      font-size: 30px;
+      text-align: center;
+    }
+    .list-item {
+      background-color: #fff;
+      border: none;
+      padding: 5px;
+      margin: 5px;
+      list-style-type: none; /* Removes bullet points */
+    }
+  </style>
 </head>
 <body>
-  <center><h1>Today's Lunch is:</h1></center>
-  <b><div class=content-box id="jsonContent">Loading today's menu...</div></b>
+  <div class="content-box">
+    <h1>Today's Lunch is:</h1>
+    <h3 id="jsonContentToday">Loading today's menu...</h3>
+    <h1>Tomorrow's Lunch is:</h1>
+    <h3 id="jsonContentTomorrow">Loading tomorrow's menu...</h3>
+  </div>
 
-<script>
-  // Helper function to format the current date as "Day MM-D"
-  function getFormattedDate() {
-    const date = new Date();
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const day = dayNames[date.getDay()];
-    const month = date.getMonth() + 1; // Months are zero-indexed
-    const dayOfMonth = date.getDate();
-    return `${day} ${month}-${dayOfMonth}`;
-  }
+  <script>
+    // Helper function to format a given date as "Day MM-D"
+    function getFormattedDate(date) {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const day = dayNames[date.getDay()];
+      const month = date.getMonth() + 1; // Months are zero-indexed
+      const dayOfMonth = date.getDate();
+      return `${day} ${month}-${dayOfMonth}`;
+    }
 
-  function displayTodaysMenuItem(items) {
-    const today = getFormattedDate();
-    const ul = document.createElement('ul');
-    let itemFound = false;
+    function displayMenuItems(items, date, contentElementId) {
+      const formattedDate = getFormattedDate(date);
+      const ul = document.createElement('ul');
+      let itemFound = false;
 
-    items.forEach(item => {
-      const regex = new RegExp('^' + today + '\\s'); // Include space after the date
-      if (item.title && regex.test(item.title)) {
+      items.forEach(item => {
+        const regex = new RegExp('^' + formattedDate + '\\s'); // Include space after the date
+        if (item.title && regex.test(item.title)) {
+          const li = document.createElement('li');
+          li.className = 'list-item';
+          // Replace the date in the title with an empty string
+          const titleWithoutDate = item.title.replace(regex, '');
+          li.textContent = titleWithoutDate; // Menu item title without the date
+          ul.appendChild(li);
+          itemFound = true;
+        }
+      });
+
+      if (!itemFound) {
         const li = document.createElement('li');
         li.className = 'list-item';
-        // Replace the date in the title with an empty string
-        const titleWithoutDate = item.title.replace(regex, '');
-        li.textContent = titleWithoutDate; // Menu item title without the date
+        li.textContent = "No menu items found.";
         ul.appendChild(li);
-        itemFound = true;
       }
-    });
 
-    if (!itemFound) {
-      const li = document.createElement('li');
-      li.className = 'list-item';
-      li.textContent = "No menu items found for today.";
-      ul.appendChild(li);
+      const contentElement = document.getElementById(contentElementId);
+      contentElement.innerHTML = ''; // Clear loading message or previous content
+      contentElement.appendChild(ul); // Add data
     }
-    return ul;
-  }
 
-  // Immediately invoked function to load menu items
-  (function loadMenuItems() {
-    const jsonContent = document.getElementById('jsonContent');
-    const url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbrrice.tandem.co%2Findex.php%3Ftype%3Dexport%26action%3Drss%26export_type%3Dmenus%26date_start%3D2023-11-01%26date_end%3D2024-11-01%26schools%3D1%26menu_types%3D1&api_key=bqh8acmgmtolhqnfuqqarzfk9pbf6junvw6qjfbs&count=100";
-    fetch(url)
-      .then(response => response.json())
-      .then(jsonData => {
-        jsonContent.innerHTML = ''; // Clear loading message or previous content
-        if (jsonData.items && Array.isArray(jsonData.items)) {
-          jsonContent.appendChild(displayTodaysMenuItem(jsonData.items)); // Add today's data
-        } else {
-          jsonContent.textContent = "No menu items found.";
-        }
-      })
-      .catch(error => {
-        console.error('Error fetching JSON:', error);
-        jsonContent.textContent = 'There was an issue fetching the menu.';
-      });
-  })();
-</script>
-
+    // Immediately invoked function to load menu items
+    (function loadMenuItems() {
+      const url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbrrice.tandem.co%2Findex.php%3Faction%3Drss%26date_start%3D2023-11-01%26export_type%3Dmenus%26menu_types%3D1%26schools%3D1%26type%3Dexport&api_key=bqh8acmgmtolhqnfuqqarzfk9pbf6junvw6qjfbs&count=50"; // Use your API URL here
+      fetch(url)
+        .then(response => response.json())
+        .then(jsonData => {
+          if (jsonData.items && Array.isArray(jsonData.items)) {
+            // Display today's menu items
+            displayMenuItems(jsonData.items, new Date(), 'jsonContentToday');
+            // Display tomorrow's menu items
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            displayMenuItems(jsonData.items, tomorrow, 'jsonContentTomorrow');
+          } else {
+            document.getElementById('jsonContentToday').textContent = "No menu items found.";
+            document.getElementById('jsonContentTomorrow').textContent = "No menu items found.";
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching JSON:', error);
+          document.getElementById('jsonContentToday').textContent = 'There was an issue fetching the menu.';
+          document.getElementById('jsonContentTomorrow').textContent = 'There was an issue fetching the menu.';
+        });
+    })();
+  </script>
 </body>
 </html>
