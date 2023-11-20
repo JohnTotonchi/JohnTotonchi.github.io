@@ -1,57 +1,64 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>DALL·E Generator</title>
-  <style>
-    /* Add your CSS here */
-  </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.1.2/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        async function generateImage() {
+            try {
+              // Extract values from form inputs
+              const apiKey = document.getElementById("api_key").value;
+              const model = document.getElementById("model").value;
+              const prompt = document.getElementById("prompt").value;
+              const size = document.getElementById("size").value;
+
+              // Data payload for the API request
+              const data = {
+                model,
+                prompt,
+                n: 1,
+                size,
+              };
+
+              // Initiate Fetch request
+              const response = await fetch("https://api.openai.com/v1/images/generations", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${apiKey}`,
+                },
+                body: JSON.stringify(data),
+              });
+
+              // Error Handling
+              if (!response.ok) {
+                  throw new Error("API response was not ok.");
+              }
+
+              // Get json data from the response
+              const resData = await response.json();
+
+           // Handle any errors that occur during the fetch.
+           } catch (err) {
+             console.error("An error occurred: ", err.message);
+           }
+        }
+        </script>
 </head>
-<body>
-  <form id="myForm">
-    <label for="apiKey">API Key:</label><br>
-    <input type="text" id="apiKey" name="apiKey"><br>
-    <label for="model">Model:</label><br>
-    <select id="model" name="model">
-      <option value="dall-e-2">DALL·E 2</option>
-      <option value="dall-e-3">DALL·E 3</option>
-    </select><br>
-    <label for="prompt">Prompt:</label><br>
-    <input type="text" id="prompt" name="prompt"><br>
-    <label for="n">Number of Images:</label><br>
-    <input type="number" id="n" name="n" min="1" max="10"><br>
-    <input type="submit" value="Submit">
-  </form>
-  <img id="responseImg" src="" alt="Generated Image">
-
-  <script>
-    document.getElementById('myForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const apiKey = document.getElementById('apiKey').value;
-      const model = document.getElementById('model').value;
-      const prompt = document.getElementById('prompt').value;
-      const n = document.getElementById('n').value;
-      const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      };
-
-      const body = {
-        model: model,
-        prompt: prompt,
-        n: n,
-        size: "1024x1024"
-      };
-
-      fetch('https://api.openai.com/v1/images/generations', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(body)
-      })
-      .then(response => response.json())
-      .then(data => document.getElementById("responseImg").src = data.result.images[0].result)
-      .catch((error) => console.error('Error:', error));
-    });
-  </script>
+<body class="p-10">
+    <h1 class="text-2xl mb-5">OpenAI Image Generator</h1>
+    <div>
+        <input class="mb-2 border" id="api_key" type="text" placeholder="API Key">
+        <select id="model" class="mb-2 border">
+            <option value="dall-e-2">DALL-E 2</option>
+            <option value="dall-e-3">DALL-E 3</option>
+        </select>
+        <input class="mb-2 border" id="prompt" type="text" placeholder="Prompt">
+        <select id="size" class="mb-2 border">
+            <option value="512x512">512x512</option>
+            <option value="1024x1024">1024x1024</option>
+        </select>
+        <button onClick="generateImage()">Generate Image</button>
+    </div>
+    <img id="generated_image">
 </body>
 </html>
