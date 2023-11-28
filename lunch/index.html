@@ -55,7 +55,8 @@
           li.className = 'list-item';
           // Replace the date in the title with an empty string
           const titleWithoutDate = item.title.replace(regex, '');
-          li.textContent = titleWithoutDate; // Menu item title without the date
+          li.textContent = titleWithoutDate.replace(/&amp;/g, '&'); // Replace "&amp;" with "&" in the menu item title
+
           ul.appendChild(li);
           itemFound = true;
         }
