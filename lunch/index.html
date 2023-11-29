@@ -21,9 +21,8 @@
       padding: 10px;
       margin-top: 10px;
       background-color: #fff;
-      font-size: 20px;
+      font-size: 30px;
       text-align: center;
-
     }
     .list-item {
       background-color: #fff;
@@ -31,27 +30,74 @@
       padding: 5px;
       margin: 5px;
       list-style-type: none;
-      font-size: 30px;
-      font-weight: bold;
     }
     .sub-day-message {
-      font-size: 24px;
+      font-size: 20px;
       margin-top: 10px;
-color: darkorange
+      color: darkorange;
     }
   </style>
 </head>
 <body>
   <div class="content-box">
     <h1>Today's Lunch is:</h1>
-    <ul id="menuItemsToday"></ul>
+    <b></b><ul id="menuItemsToday"></ul>
+    <h2 id="subDayMessage" class="sub-day-message"></h2></b>
     <h1>Tomorrow's Lunch is:</h1>
     <ul id="menuItemsTomorrow"></ul>
-    <h2 id="subDayMessage" class="sub-day-message"></h2>
+    
   </div>
 
   <script>
-    // ...
+    // Helper function to format a given date as "Day MM-D"
+    function getFormattedDate(date) {
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const day = dayNames[date.getDay()];
+      const month = date.getMonth() + 1; // Months are zero-indexed
+      const dayOfMonth = date.getDate();
+      return `${day} ${month}-${dayOfMonth}`;
+    }
+
+    function displayMenuItems(items, date, contentElementId) {
+      const formattedDate = getFormattedDate(date);
+      const ul = document.getElementById(contentElementId);
+      let itemFound = false;
+
+      items.forEach(item => {
+        const regex = new RegExp('^' + formattedDate + '\\s', 'i');
+        if (item.title && regex.test(item.title)) {
+          const li = document.createElement('li');
+          li.className = 'list-item';
+          const titleWithoutDate = item.title.replace(regex, '');
+          li.textContent = titleWithoutDate.replace(/&amp;/g, '&');
+
+          ul.appendChild(li);
+          itemFound = true;
+
+          // Check if the title contains "med"
+          const titleLowerCase = item.title.toLowerCase();
+          if (titleLowerCase.includes('med')) {
+            // Don't check for "bar" if "med" is present
+          } else if (titleLowerCase.includes('chicken')) {
+            showSubDayMessage(); // Call the function to display the "it's a sub day" message
+          } else if (titleLowerCase.includes('bar')) {
+            showSubDayMessage(); // Call the function to display the "it's a sub day" message
+          }
+        }
+      });
+
+      if (!itemFound) {
+        const li = document.createElement('li');
+        li.className = 'list-item';
+        li.textContent = "No menu items found for today.";
+        ul.appendChild(li);
+      }
+    }
+
+    function showSubDayMessage() {
+      const subDayMessage = document.getElementById('subDayMessage');
+      subDayMessage.textContent = "It's a sub day";
+    }
 
     // Immediately invoked function to load menu items
     (function loadMenuItems() {
