@@ -96,8 +96,8 @@
         })
         .catch(error => {
           console.error('Error fetching JSON:', error);
-          document.getElementById('jsonContentToday').textContent = 'There was an issue fetching the menu.';
-          document.getElementById('jsonContentTomorrow').textContent = 'There was an issue fetching the menu.';
+          document.getElementById('jsonContentToday').textContent = 'There is not school today.';
+          document.getElementById('jsonContentTomorrow').textContent = 'There is not school tomorrow.';
         });
     })();
   </script>
