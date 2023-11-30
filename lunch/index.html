@@ -2,20 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="apple-mobile-web-app-capable" content="yes"> 
   <link rel="apple-touch-icon" href="lunchApp.png">
   <title>Menu Items</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      overflow: hidden;
     }
     .content-box {
       border: 0px solid #ddd;
@@ -30,23 +23,16 @@
       border: none;
       padding: 5px;
       margin: 5px;
-      list-style-type: none;
-    }
-    .sub-day-message {
-      font-size: 20px;
-      margin-top: 10px;
-      color: darkorange;
+      list-style-type: none; /* Removes bullet points */
     }
   </style>
 </head>
 <body>
   <div class="content-box">
     <h1>Today's Lunch is:</h1>
-    <b></b><ul id="menuItemsToday"></ul>
-    
+    <h3 id="jsonContentToday">Loading today's menu...</h3>
     <h1>Tomorrow's Lunch is:</h1>
-    <ul id="menuItemsTomorrow"></ul>
-    
+    <h3 id="jsonContentTomorrow">Loading tomorrow's menu...</h3>
   </div>
 
   <script>
@@ -61,44 +47,34 @@
 
     function displayMenuItems(items, date, contentElementId) {
       const formattedDate = getFormattedDate(date);
-      const ul = document.getElementById(contentElementId);
+      const ul = document.createElement('ul');
       let itemFound = false;
 
       items.forEach(item => {
-        const regex = new RegExp('^' + formattedDate + '\\s', 'i');
+        const regex = new RegExp('^' + formattedDate + '\\s'); // Include space after the date
         if (item.title && regex.test(item.title)) {
           const li = document.createElement('li');
           li.className = 'list-item';
+          // Replace the date in the title with an empty string
           const titleWithoutDate = item.title.replace(regex, '');
-          li.textContent = titleWithoutDate.replace(/&amp;/g, '&');
+          li.textContent = titleWithoutDate.replace(/&amp;/g, '&'); // Replace "&amp;" with "&" in the menu item title
 
           ul.appendChild(li);
           itemFound = true;
-
-          // Check if the title contains "med"
-          //const titleLowerCase = item.title.toLowerCase();
-      //    if (titleLowerCase.includes('med')) {
-            // Don't check for "bar" if "med" is present
-   //       } else if (titleLowerCase.includes('chicken')) {
-  //          showSubDayMessage(); // Call the function to display the "it's a sub day" message
-    //      } else if (titleLowerCase.includes('bar')) {
-      //      showSubDayMessage(); // Call the function to display the "it's a sub day" message
-        //  }
-       // }
-     // });
+        }
+      });
 
       if (!itemFound) {
         const li = document.createElement('li');
         li.className = 'list-item';
-        li.textContent = "No menu items found for today.";
+        li.textContent = "No menu items found.";
         ul.appendChild(li);
       }
-    }
 
- //   function showSubDayMessage() {
-   //   const subDayMessage = document.getElementById('subDayMessage');
-     // subDayMessage.textContent = "It's a sub day";
-   // }
+      const contentElement = document.getElementById(contentElementId);
+      contentElement.innerHTML = ''; // Clear loading message or previous content
+      contentElement.appendChild(ul); // Add data
+    }
 
     // Immediately invoked function to load menu items
     (function loadMenuItems() {
@@ -108,21 +84,20 @@
         .then(jsonData => {
           if (jsonData.items && Array.isArray(jsonData.items)) {
             // Display today's menu items
-            displayMenuItems(jsonData.items, new Date(), 'menuItemsToday');
-            
+            displayMenuItems(jsonData.items, new Date(), 'jsonContentToday');
             // Display tomorrow's menu items
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            displayMenuItems(jsonData.items, tomorrow, 'menuItemsTomorrow');
+            displayMenuItems(jsonData.items, tomorrow, 'jsonContentTomorrow');
           } else {
-            document.getElementById('menuItemsToday').textContent = "No menu items found for today.";
-            document.getElementById('menuItemsTomorrow').textContent = "No menu items found for tomorrow.";
+            document.getElementById('jsonContentToday').textContent = "No menu items found.";
+            document.getElementById('jsonContentTomorrow').textContent = "No menu items found.";
           }
         })
         .catch(error => {
           console.error('Error fetching JSON:', error);
-          document.getElementById('menuItemsToday').textContent = 'There was an issue fetching today\'s menu.';
-          document.getElementById('menuItemsTomorrow').textContent = 'There was an issue fetching tomorrow\'s menu.';
+          document.getElementById('jsonContentToday').textContent = 'There was an issue fetching the menu.';
+          document.getElementById('jsonContentTomorrow').textContent = 'There was an issue fetching the menu.';
         });
     })();
   </script>
