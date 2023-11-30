@@ -43,7 +43,7 @@
   <div class="content-box">
     <h1>Today's Lunch is:</h1>
     <b></b><ul id="menuItemsToday"></ul>
-    <h2 id="subDayMessage" class="sub-day-message"></h2></b>
+    
     <h1>Tomorrow's Lunch is:</h1>
     <ul id="menuItemsTomorrow"></ul>
     
@@ -76,16 +76,16 @@
           itemFound = true;
 
           // Check if the title contains "med"
-          const titleLowerCase = item.title.toLowerCase();
-          if (titleLowerCase.includes('med')) {
+          //const titleLowerCase = item.title.toLowerCase();
+      //    if (titleLowerCase.includes('med')) {
             // Don't check for "bar" if "med" is present
-          } else if (titleLowerCase.includes('chicken')) {
-            showSubDayMessage(); // Call the function to display the "it's a sub day" message
-          } else if (titleLowerCase.includes('bar')) {
-            showSubDayMessage(); // Call the function to display the "it's a sub day" message
-          }
-        }
-      });
+   //       } else if (titleLowerCase.includes('chicken')) {
+  //          showSubDayMessage(); // Call the function to display the "it's a sub day" message
+    //      } else if (titleLowerCase.includes('bar')) {
+      //      showSubDayMessage(); // Call the function to display the "it's a sub day" message
+        //  }
+       // }
+     // });
 
       if (!itemFound) {
         const li = document.createElement('li');
@@ -95,10 +95,10 @@
       }
     }
 
-    function showSubDayMessage() {
-      const subDayMessage = document.getElementById('subDayMessage');
-      subDayMessage.textContent = "It's a sub day";
-    }
+ //   function showSubDayMessage() {
+   //   const subDayMessage = document.getElementById('subDayMessage');
+     // subDayMessage.textContent = "It's a sub day";
+   // }
 
     // Immediately invoked function to load menu items
     (function loadMenuItems() {
