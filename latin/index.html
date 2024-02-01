@@ -1,0 +1,106 @@
+<head>
+<meta charset="UTF-8">
+<title>Study Word Wall</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  #result { margin-top: 20px; }
+  .correct { color: green; }
+  .incorrect { color: red; }
+</style>
+</head>
+<body>
+
+<h2>TSV Quiz App</h2>
+<p>Paste your TSV data here:</p>
+<textarea id="tsvInput" rows="10" cols="50"></textarea>
+<button onclick="startQuiz()">Start Quiz</button>
+
+<div id="quizArea">
+    <div>
+      <p><strong>Term:</strong> parō, parāre, parāvī, parātum</p>
+      <input type="text" id="answer" autofocus=""><button onclick="checkAnswer()">Submit</button>
+    </div>
+  </div>
+<div id="result"><span class="correct">Correct!</span></div>
+
+<script>
+let terms = [];
+let incorrectTerms = [];
+let currentIndex = 0;
+
+function startQuiz() {
+  const input = document.getElementById('tsvInput').value;
+  parseTSV(input);
+  currentIndex = 0;
+  incorrectTerms = [];
+  if (terms.length > 0) {
+    askQuestion();
+  }
+}
+
+function parseTSV(input) {
+  terms = input.split('\n').map(row => {
+    let [term, definition] = row.split('\t');
+    let definitions = definition.split(/[,\/]/).map(d => d.trim());
+
+    // Check for required prefix like 'to' and prepend if necessary
+    const prefixMatch = definitions[0].match(/^(to\s)/);
+    if (prefixMatch) {
+      definitions = definitions.map(d => {
+        if (!d.startsWith(prefixMatch[0])) {
+          return prefixMatch[0] + d; // prepend 'to '
+        }
+        return d;
+      });
+    }
+
+    return { term, definition: definitions };
+  });
+}
+
+function askQuestion() {
+  const question = terms[currentIndex];
+  document.getElementById('quizArea').innerHTML = `
+    <div>
+      <p><strong>Term:</strong> ${question.term}</p>
+      <input type="text" id="answer" autofocus /><button onclick="checkAnswer()">Submit</button>
+    </div>
+  `;
+}
+
+function checkAnswer() {
+  const userAnswer = document.getElementById('answer').value.trim();
+  const correctAnswers = terms[currentIndex].definition;
+  
+  if (correctAnswers.some(ans => ans.toLowerCase() === userAnswer.toLowerCase())) {
+    displayResult(true);
+  } else {
+    incorrectTerms.push(terms[currentIndex]);
+    displayResult(false);
+  }
+  nextQuestion();
+}
+
+function nextQuestion() {
+  currentIndex++;
+  if (currentIndex < terms.length) {
+    askQuestion();
+  } else if (incorrectTerms.length > 0) {
+    terms = incorrectTerms;
+    currentIndex = 0;
+    incorrectTerms = [];
+    askQuestion();
+  } else {
+    document.getElementById('quizArea').innerHTML = '';
+    document.getElementById('result').textContent = 'Quiz Complete!';
+  }
+}
+
+function displayResult(isCorrect) {
+  const resultText = isCorrect ? 'Correct!' : `Incorrect! Correct answer(s): ${terms[currentIndex].definition.join(', ')}`;
+  const resultClass = isCorrect ? 'correct' : 'incorrect';
+  document.getElementById('result').innerHTML = `<span class="${resultClass}">${resultText}</span>`;
+}
+</script>
+
+</body>
