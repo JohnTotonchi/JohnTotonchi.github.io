@@ -80,7 +80,7 @@
 
     // Immediately invoked function to load menu items
     (function loadMenuItems() {
-      const url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbrrice.tandem.co%2Findex.php%3Ftype%3Dexport%26action%3Drss%26export_type%3Dmenus%26date_start%3D2024-02-01%26schools%3D1%26menu_types%3D1&api_key=bqh8acmgmtolhqnfuqqarzfk9pbf6junvw6qjfbs&count=1000"; // Use your API URL here
+      const url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbrrice.tandem.co%2Findex.php%3Ftype%3Dexport%26action%3Drss%26export_type%3Dmenus%26date_start%3D2024-03-01%26schools%3D1%26menu_types%3D1&api_key=bqh8acmgmtolhqnfuqqarzfk9pbf6junvw6qjfbs&count=10000"; // Use your API URL here
       fetch(url)
         .then(response => response.json())
         .then(jsonData => {
