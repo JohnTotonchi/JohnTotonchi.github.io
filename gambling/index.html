@@ -41,6 +41,9 @@
 <body>
 <h1>Roulette Wheel Simulation</h1>
 
+<label for="bankroll">Enter your initial bankroll:</label>
+<input type="number" id="bankroll" value="1000"><br>
+
 <label for="wager">Enter your initial wager:</label>
 <input type="number" id="wager" value="10"><br>
 
@@ -60,6 +63,7 @@
             <th>Result</th>
             <th>Outcome (Won/Lost)</th>
             <th>Current Wager</th>
+            <th>Current Bankroll</th>
         </tr>
     </thead>
     <tbody>
@@ -68,20 +72,23 @@
 
 <script>
 function runSimulation() {
+    const initialBankroll = parseInt(document.getElementById('bankroll').value);
     const initialWager = parseInt(document.getElementById('wager').value);
     const trials = parseInt(document.getElementById('trials').value);
     const tbody = document.querySelector("#resultsTable tbody");
     tbody.innerHTML = "";
 
     let currentWager = initialWager;
-    let totalProfit = 0;
+    let currentBankroll = initialBankroll;
     let totalWins = 0;
     let totalLosses = 0;
     let totalRed = 0;
     let totalBlack = 0;
     let totalGreen = 0;
-    
-    for (let i = 1; i <= trials; i++) {
+
+    for (let i = 1; i <= trials && currentBankroll > 0; i++) {
+        if (currentWager > currentBankroll) currentWager = currentBankroll; // Adjust wager if it exceeds bankroll
+
         const spinResult = spinRoulette();
         if (spinResult === 'Red') totalRed++;
         if (spinResult === 'Black') totalBlack++;
@@ -89,26 +96,30 @@ function runSimulation() {
 
         const won = spinResult === 'Red';
         const outcome = won ? currentWager : -currentWager;
-        totalProfit += outcome;
+        currentBankroll += outcome;
         won ? totalWins++ : totalLosses++;
-        currentWager = won ? initialWager : currentWager * 2; // Martingale strategy: double the bet if lost
+        currentWager = won ? initialWager : currentWager * 2; // Double the bet if lost
 
         const row = `<tr>
             <td>${i}</td>
             <td>${spinResult}</td>
             <td>${outcome >= 0 ? 'Won ' + Math.abs(outcome) : 'Lost ' + Math.abs(outcome)}</td>
             <td>${currentWager}</td>
+            <td>${currentBankroll}</td>
         </tr>`;
         tbody.innerHTML += row;
     }
 
+    const totalProfit = currentBankroll - initialBankroll;
     const profitEl = document.getElementById('profitDisplay');
     profitEl.className = 'profit ' + (totalProfit >= 0 ? 'positive' : 'negative');
     profitEl.textContent = 'Total Profit: ' + totalProfit;
 
     const diagEl = document.getElementById('diagnostics');
-    diagEl.innerHTML = `<p>Total Wins: ${totalWins}, Total Losses: ${totalLosses}</p>
-                        <p>Reds: ${totalRed}, Blacks: ${totalBlack}, Greens: ${totalGreen}</p>`;
+    diagEl.innerHTML = `
+        <p>Total Wins: ${totalWins}, Total Losses: ${totalLosses}</p>
+        <p>Reds: ${totalRed}, Blacks: ${totalBlack}, Greens: ${totalGreen}</p>
+        <p>Final Bankroll: ${currentBankroll}</p>`;
 }
 
 function spinRoulette() {
