@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Roulette Simulator</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        padding: 0;
+    }
+    input, button {
+        padding: 10px;
+        margin: 5px;
+    }
+    table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    .profit {
+        font-size: 1.5em;
+        margin-top: 10px;
+    }
+    .positive {
+        color: green;
+    }
+    .negative {
+        color: red;
+    }
+</style>
+</head>
+<body>
+<h1>Roulette Wheel Simulation</h1>
+
+<label for="wager">Enter your initial wager:</label>
+<input type="number" id="wager" value="10"><br>
+
+<label for="trials">Enter number of trials:</label>
+<input type="number" id="trials" value="100"><br>
+
+<button onclick="runSimulation()">Run Simulation</button>
+
+<div id="profitDisplay" class="profit"></div>
+
+<div id="diagnostics"></div>
+
+<table id="resultsTable">
+    <thead>
+        <tr>
+            <th>Trial #</th>
+            <th>Result</th>
+            <th>Outcome (Won/Lost)</th>
+            <th>Current Wager</th>
+        </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+function runSimulation() {
+    const initialWager = parseInt(document.getElementById('wager').value);
+    const trials = parseInt(document.getElementById('trials').value);
+    const tbody = document.querySelector("#resultsTable tbody");
+    tbody.innerHTML = "";
+
+    let currentWager = initialWager;
+    let totalProfit = 0;
+    let totalWins = 0;
+    let totalLosses = 0;
+    let totalRed = 0;
+    let totalBlack = 0;
+    let totalGreen = 0;
+    
+    for (let i = 1; i <= trials; i++) {
+        const spinResult = spinRoulette();
+        if (spinResult === 'Red') totalRed++;
+        if (spinResult === 'Black') totalBlack++;
+        if (spinResult === 'Green') totalGreen++;
+
+        const won = spinResult === 'Red';
+        const outcome = won ? currentWager : -currentWager;
+        totalProfit += outcome;
+        won ? totalWins++ : totalLosses++;
+        currentWager = won ? initialWager : currentWager * 2; // Martingale strategy: double the bet if lost
+
+        const row = `<tr>
+            <td>${i}</td>
+            <td>${spinResult}</td>
+            <td>${outcome >= 0 ? 'Won ' + Math.abs(outcome) : 'Lost ' + Math.abs(outcome)}</td>
+            <td>${currentWager}</td>
+        </tr>`;
+        tbody.innerHTML += row;
+    }
+
+    const profitEl = document.getElementById('profitDisplay');
+    profitEl.className = 'profit ' + (totalProfit >= 0 ? 'positive' : 'negative');
+    profitEl.textContent = 'Total Profit: ' + totalProfit;
+
+    const diagEl = document.getElementById('diagnostics');
+    diagEl.innerHTML = `<p>Total Wins: ${totalWins}, Total Losses: ${totalLosses}</p>
+                        <p>Reds: ${totalRed}, Blacks: ${totalBlack}, Greens: ${totalGreen}</p>`;
+}
+
+function spinRoulette() {
+    const randomNumber = Math.floor(Math.random() * 38); // 0-37
+    if (randomNumber < 18) {
+        return 'Red';
+    } else if (randomNumber < 36) {
+        return 'Black';
+    } else {
+        return 'Green';
+    }
+}
+</script>
+</body>
+</html>
