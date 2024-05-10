@@ -8,37 +8,58 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
+    :root {
+        --background-color: #f5f5f7;
+        --text-color: #000;
+        --container-bg-color: #fff;
+        --button-bg-color: #007aff;
+        --button-text-color: white;
+        --table-header-bg-color: #007aff;
+        --table-header-text-color: white;
+        --table-row-even-bg-color: #f2f2f2;
+    }
+    [data-theme="dark"] {
+        --background-color: #333;
+        --text-color: #ccc;
+        --container-bg-color: #424242;
+        --button-bg-color: #1a73e8;
+        --button-text-color: white;
+        --table-header-bg-color: #1a73e8;
+        --table-header-text-color: white;
+        --table-row-even-bg-color: #555;
+    }
     body {
         font-family: 'Arial', sans-serif;
         margin: 0;
-        padding: 0 10px; /* Margins around the edges */
-        background-color: #f5f5f7;
+        padding: 0 10px;
+        background-color: var(--background-color);
+        color: var(--text-color);
         display: flex;
         flex-direction: column;
         align-items: center;
         height: 100vh;
-        overflow-x: hidden; /* Prevents horizontal scrolling */
-        overflow-y: auto; /* Allows vertical scrolling */
+        overflow-x: hidden; 
+        overflow-y: auto; 
     }
     .container {
         width: 100%;
         max-width: 600px;
-        background: #fff;
+        background: var(--container-bg-color);
         padding: 20px;
-        margin: 10px;
+        margin: 10px; 
         border-radius: 10px;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-    input, button {
+    input, button, select {
         width: calc(100% - 26px);
         padding: 10px;
         margin: 5px 0;
-        border: 1px solid #ccc; /* Border added for clarity */
+        border: 1px solid #ccc; 
         border-radius: 5px;
     }
     button {
-        background-color: #007aff;
-        color: white;
+        background-color: var(--button-bg-color);
+        color: var(--button-text-color);
         font-size: 16px;
         cursor: pointer;
     }
@@ -53,38 +74,39 @@
         padding: 8px;
     }
     th {
-        background-color: #007aff;
-        color: white;
+        background-color: var(--table-header-bg-color);
+        color: var(--table-header-text-color);
     }
     tr:nth-child(even) {
-        background-color: #f2f2f2;
+        background-color: var(--table-row-even-bg-color);
     }
     .profit, .center {
         font-size: 1.5em;
         margin-top: 10px;
-        font-weight: bold;
-        text-align: center;
+        font-weight: bold; 
     }
-    .positive {
-        color: green;
-    }
-    .negative {
-        color: red;
-    }
+    .positive { color:green; }
+    .negative { color:red; }
     footer {
         width: calc(100% - 20px);
-        padding: 10px;
+        padding-top: 20px;
         font-style: italic;
         color: gray;
-        display: flex;
-        justify-content: space-between;
-        font-size: 14px;
     }
+    .footer-content {
+      display:flex; 
+      justify-content:space-between; 
+      font-size:.8em; 
+      align-items:flex-end
+      }
+    
 </style>
 </head>
 <body>
 <div class="container">
     <h1 class="center">Roulette Wheel Simulation</h1>
+    
+   
 
     <label for="bankroll">Enter your initial bankroll:</label>
     <input type="number" id="bankroll" value="1000"><br>
@@ -102,7 +124,7 @@
     <div id="diagnostics" class="center"></div>
 
     <table id="resultsTable">
-        <thead>
+      <thead>
             <tr>
                 <th>Trial #</th>
                 <th>Result</th>
@@ -110,73 +132,88 @@
                 <th>Current Wager</th>
                 <th>Current Bankroll</th>
             </tr>
-        </thead>
-        <tbody>
-        </tbody>
+      </thead>
+      <tbody>
+      </tbody>
     </table>
 </div>
 
-<footer>
-    <div>I made this after I failed a Galli quiz</div>
-    <div>Shoutout Ivan for testing. (Blackjack coming soon)</div>
-</footer>
+<footer class='footer-content'>
+   <div>I made this in less than one Galli class</div>  
+   <div>Shoutout Ivan</div>
+ </footer> 
+
+<button onclick="toggleDarkMode()">Toggle Dark/Light Mode</button>
 
 <script>
+let darkMode = false;
+
+function toggleDarkMode() {
+     darkMode = !darkMode;
+     document.querySelector('body').setAttribute('data-theme', darkMode ? 'dark' : '');
+}
+
 function runSimulation() {
-    const initialBankroll = parseInt(document.getElementById('bankroll').value);
-    const initialWager = parseInt(document.getElementById('wager').value);
-    const trials = parseInt(document.getElementById('trials').value);
-    const tbody = document.querySelector("#resultsTable tbody");
-    tbody.innerHTML = "";
+     const initialBankroll = parseInt(document.getElementById('bankroll').value);
+     const initialWager = parseInt(document.getElementById('wager').value);
+     const trials = parseInt(document.getElementById('trials').value);
+     const tbody = document.querySelector("#resultsTable tbody");
+     tbody.innerHTML = "";
 
-    let currentWager = initialWager;
-    let currentBankroll = initialBankroll;
-    let totalWins = 0;
-    let totalLosses = 0;
-    let totalRed = 0;
-    let totalBlack = 0;
-    let totalGreen = 0;
+     let currentWager = initialWager;
+     let currentBankroll = initialBankroll;
+     let totalWins = 0;
+     let totalLosses = 0;
+     let totalRed = 0;
+     let totalBlack = 0;
+     let totalGreen = 0;
 
-    for (let i = 1; i <= trials && currentBankroll > 0; i++) {
-        if (currentWager > currentBankroll) currentWager = currentBankroll;
+     for (let i = 1; i <= trials && currentBankroll > 0; i++) {
+         if (currentWager > currentBankroll) { currentWager = currentBankroll; }
 
-        const spinResult = spinRoulette();
-        if (spinResult === 'Red') totalRed++;
-        if (spinResult === 'Black') totalBlack++;
-        if (spinResult === 'Green') totalGreen++;
+         const spinResult = spinRoulette();
+         if (spinResult === 'Red') { totalRed++; }
+         if (spinResult === 'Black') { totalBlack++; }
+         if (spinResult === 'Green') { totalGreen++; }
 
-        const won = spinResult === 'Red';
-        const outcome = won ? currentWager : -currentWager;
-        currentBankroll += outcome;
-        won ? totalWins++ : totalLosses++;
-        currentWager = won ? initialWager : currentWager * 2;
+         const won = spinResult === 'Red';
+         const outcome = won ? currentWager : -currentWager;
 
-        const row = `<tr>
-            <td>${i}</td>
-            <td>${spinResult}</td>
-            <td>${outcome >= 0 ? 'Won ' + Math.abs(outcome) : 'Lost ' + Math.abs(outcome)}</td>
-            <td>${currentWager}</td>
-            <td>${currentBankroll}</td>
-        </tr>`;
-        tbody.innerHTML += row;
-    }
+         currentBankroll += outcome;
 
-    const totalProfit = currentBankroll - initialBankroll;
-    const profitEl = document.getElementById('profitDisplay');
-    profitEl.className = 'profit ' + (totalProfit >= 0 ? 'positive' : 'negative');
-    profitEl.textContent = 'Total Profit: ' + totalProfit;
+         won ? totalWins++ : totalLosses++;
+         currentWager = won ? initialWager : currentWager * 2;
 
-    const diagEl = document.getElementById('diagnostics');
-    diagEl.innerHTML = `
-        <p>Total Wins: ${totalWins}, Total Losses: ${totalLosses}</p>
-        <p>Reds: ${totalRed}, Blacks: ${totalBlack}, Greens: ${totalGreen}</p>
-        <p>Final Bankroll: ${currentBankroll}</p>`;
+         const row = `<tr>
+             <td>${i}</td>
+             <td>${spinResult}</td>
+             <td>${outcome >= 0 ? 'Won ' + Math.abs(outcome) : 'Lost ' + Math.abs(outcome)}</td>
+             <td>${currentWager}</td>
+             <td>${currentBankroll}</td>
+         </tr>`;
+       tbody.innerHTML += row;
+
+         }
+
+      const totalProfit = currentBankroll - initialBankroll;
+
+      const profitDisplay = document.getElementById('profitDisplay');
+
+      profitDisplay.className = 'profit ' + (totalProfit >= 0 ? 'positive' : 'negative');
+      
+      profitDisplay.textContent = 'Total Profit : $' + totalProfit;
+
+       document.getElementById('diagnostics').innerHTML =
+      `
+         <p>Total Wins : $ ${totalWins}, Total Losses : $ ${totalLosses} </p>   
+       `;
+
 }
 
 function spinRoulette() {
-    const randomNumber = Math.floor(Math.random() * 38);
-    return randomNumber < 18 ? 'Red' : (randomNumber < 36 ? 'Black' : 'Green');
+         const randomNumber = Math.floor(Math.random() * 38);
+          return randomNumber < 18 ? 'Red' : (randomNumber < 36 ? 'Black' : 'Green');
 }
-</script>
+</script> 
 </body>
 </html>
