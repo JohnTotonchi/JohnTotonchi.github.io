@@ -2,33 +2,68 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Roulette Simulator</title>
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
     body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        padding: 0;
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0 10px; /* Margins around the edges */
+        background-color: #f5f5f7;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+        overflow-x: hidden; /* Prevents horizontal scrolling */
+        overflow-y: auto; /* Allows vertical scrolling */
+    }
+    .container {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        padding: 20px;
+        margin: 10px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     input, button {
+        width: calc(100% - 26px);
         padding: 10px;
-        margin: 5px;
+        margin: 5px 0;
+        border: 1px solid #ccc; /* Border added for clarity */
+        border-radius: 5px;
+    }
+    button {
+        background-color: #007aff;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
     }
     table {
         width: 100%;
-        margin-top: 20px;
         border-collapse: collapse;
+        margin-top: 20px;
     }
     th, td {
         border: 1px solid #dddddd;
         text-align: left;
         padding: 8px;
     }
+    th {
+        background-color: #007aff;
+        color: white;
+    }
     tr:nth-child(even) {
         background-color: #f2f2f2;
     }
-    .profit {
+    .profit, .center {
         font-size: 1.5em;
         margin-top: 10px;
+        font-weight: bold;
+        text-align: center;
     }
     .positive {
         color: green;
@@ -36,39 +71,55 @@
     .negative {
         color: red;
     }
+    footer {
+        width: calc(100% - 20px);
+        padding: 10px;
+        font-style: italic;
+        color: gray;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+    }
 </style>
 </head>
 <body>
-<h1>Roulette Wheel Simulation</h1>
+<div class="container">
+    <h1 class="center">Roulette Wheel Simulation</h1>
 
-<label for="bankroll">Enter your initial bankroll:</label>
-<input type="number" id="bankroll" value="1000"><br>
+    <label for="bankroll">Enter your initial bankroll:</label>
+    <input type="number" id="bankroll" value="1000"><br>
 
-<label for="wager">Enter your initial wager:</label>
-<input type="number" id="wager" value="10"><br>
+    <label for="wager">Enter your initial wager:</label>
+    <input type="number" id="wager" value="10"><br>
 
-<label for="trials">Enter number of trials:</label>
-<input type="number" id="trials" value="100"><br>
+    <label for="trials">Enter number of trials:</label>
+    <input type="number" id="trials" value="100"><br>
 
-<button onclick="runSimulation()">Run Simulation</button>
+    <button onclick="runSimulation()">Run Simulation</button>
 
-<div id="profitDisplay" class="profit"></div>
+    <div id="profitDisplay" class="profit"></div>
 
-<div id="diagnostics"></div>
+    <div id="diagnostics" class="center"></div>
 
-<table id="resultsTable">
-    <thead>
-        <tr>
-            <th>Trial #</th>
-            <th>Result</th>
-            <th>Outcome (Won/Lost)</th>
-            <th>Current Wager</th>
-            <th>Current Bankroll</th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>Trial #</th>
+                <th>Result</th>
+                <th>Outcome</th>
+                <th>Current Wager</th>
+                <th>Current Bankroll</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<footer>
+    <div>I made this the day Galli was pissed</div>
+    <div>Shoutout Ivan</div>
+</footer>
 
 <script>
 function runSimulation() {
@@ -87,7 +138,7 @@ function runSimulation() {
     let totalGreen = 0;
 
     for (let i = 1; i <= trials && currentBankroll > 0; i++) {
-        if (currentWager > currentBankroll) currentWager = currentBankroll; // Adjust wager if it exceeds bankroll
+        if (currentWager > currentBankroll) currentWager = currentBankroll;
 
         const spinResult = spinRoulette();
         if (spinResult === 'Red') totalRed++;
@@ -98,7 +149,7 @@ function runSimulation() {
         const outcome = won ? currentWager : -currentWager;
         currentBankroll += outcome;
         won ? totalWins++ : totalLosses++;
-        currentWager = won ? initialWager : currentWager * 2; // Double the bet if lost
+        currentWager = won ? initialWager : currentWager * 2;
 
         const row = `<tr>
             <td>${i}</td>
@@ -123,14 +174,8 @@ function runSimulation() {
 }
 
 function spinRoulette() {
-    const randomNumber = Math.floor(Math.random() * 38); // 0-37
-    if (randomNumber < 18) {
-        return 'Red';
-    } else if (randomNumber < 36) {
-        return 'Black';
-    } else {
-        return 'Green';
-    }
+    const randomNumber = Math.floor(Math.random() * 38);
+    return randomNumber < 18 ? 'Red' : (randomNumber < 36 ? 'Black' : 'Green');
 }
 </script>
 </body>
