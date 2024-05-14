@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Live Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        iframe {
+            width: 90%;
+            height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTML Live Preview</h1>
+    <input type="text" id="htmlInput" placeholder="Enter HTML code here">
+    <button onclick="openInNewTab()">Open in New Tab</button>
+    <iframe id="previewFrame"></iframe>
+
+    <script>
+        document.getElementById('htmlInput').addEventListener('input', updatePreview);
+
+        function updatePreview() {
+            const htmlCode = document.getElementById('htmlInput').value;
+            const iframe = document.getElementById('previewFrame');
+            const iframeDocument = iframe.contentDocument || iframe.contentWindow.document;
+            iframeDocument.open();
+            iframeDocument.write(htmlCode);
+            iframeDocument.close();
+        }
+
+        function openInNewTab() {
+            const htmlCode = document.getElementById('htmlInput').value;
+            const newWindow = window.open('about:blank', '_blank');
+            newWindow.document.open();
+            newWindow.document.write(htmlCode);
+            newWindow.document.close();
+        }
+    </script>
+</body>
+</html>
