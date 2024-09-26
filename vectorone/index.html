@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Straight Line Motion Guide</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1, h2, h3 {
+            text-align: center;
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        .box {
+            border: 2px solid #000;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .equation {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .steps {
+            background-color: #e6f7ff;
+            padding: 15px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Straight Line Motion</h1>
+    <h2>Important Equations and Definitions</h2>
+
+    <section>
+        <h3>Distance and Time</h3>
+        <p><strong>Distance</strong> = \(d\)</p>
+        <p><strong>Time</strong> = \(t\)</p>
+    </section>
+
+    <section>
+        <h3>Position</h3>
+        <p><strong>Position</strong> = \(X\), \(X_f\) (final), \(X_i\) (initial), \(X_0\) ("X nought")</p>
+        <p><strong>Displacement</strong> = change in position: \( \Delta X = X_f - X_i \)</p>
+    </section>
+
+    <section>
+        <h3>Speed and Velocity</h3>
+        <p><strong>Speed</strong> (\(v\)) = \( \frac{d}{t} \)</p>
+        <p><strong>Velocity</strong> (\(V\)) (vector) = \( \frac{\Delta X}{t} = \frac{X_f - X_i}{t} \)</p>
+    </section>
+
+    <section>
+        <h3>Slope-Intercept Form</h3>
+        <p><strong>Equation</strong>: \(y = mx + b\)</p>
+    </section>
+
+    <section class="equation">
+        <h3>Equation of Final Position</h3>
+        <p>\( X_f = Vt + X_i \)</p>
+        <p>Rearrange to solve for \(V\):</p>
+        <p>\( \frac{Vt}{t} = \frac{X_f - X_i}{t} \)</p>
+        <p>Therefore, \( V = \frac{\Delta X}{t} \)</p>
+    </section>
+
+    <section>
+        <h2>Solving a Story Problem</h2>
+        <p>A person starts at the 2m mark. At a velocity of -1m/s, they walk for 6 seconds. What is their final position?</p>
+        <div class="steps">
+            <h3>Step-by-Step Solution</h3>
+
+            <p><strong>1. Write down all values (Givens):</strong></p>
+            <div class="box">
+                \( X_i = 2\,m \) <br>
+                \( V = -1\,m/s \) <br>
+                \( t = 6\,s \) <br>
+                \( X_f = ? \)
+            </div>
+
+            <p><strong>2. Write down the equation:</strong></p>
+            <div class="box">
+                \( X_f = Vt + X_i \)
+            </div>
+
+            <p><strong>3. Plug in and solve:</strong></p>
+            <div class="box">
+                \( X_f = (-1)(6) + 2 = -6 + 2 = -4 \)
+            </div>
+
+            <p><strong>4. Write out the answer:</strong></p>
+            <div class="box">
+                Final position: \( X_f = -4\,m \)
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
