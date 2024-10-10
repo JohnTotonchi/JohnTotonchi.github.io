@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Chip Exchange</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 50px;
+        }
+        h1 {
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            display: inline-block;
+            margin-top: 20px;
+        }
+        label, select, input {
+            display: block;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        input[type="number"] {
+            padding: 5px;
+            width: 80px;
+        }
+        button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 20px;
+            color: #333;
+        }
+        .distribution {
+            margin-top: 30px;
+            font-size: 16px;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Poker Chip Exchange</h1>
+    <div class="container">
+        <label for="fromChip">Convert From:</label>
+        <select id="fromChip">
+            <option value="50">Red (50)</option>
+            <option value="25">White (25)</option>
+            <option value="10">Blue (10)</option>
+            <option value="5">Black (5)</option>
+        </select>
+
+        <label for="toChip">Convert To:</label>
+        <select id="toChip">
+            <option value="50">Red (50)</option>
+            <option value="25">White (25)</option>
+            <option value="10">Blue (10)</option>
+            <option value="5">Black (5)</option>
+        </select>
+
+        <label for="amount">Amount of Chips:</label>
+        <input type="number" id="amount" value="1" min="1">
+
+        <button onclick="convertChips()">Convert</button>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <div class="distribution">
+        <h2>Good Distribution for 200 Points:</h2>
+        <p>2 Red (50), 2 White (25), 3 Blue (10), 4 Black (5)</p>
+    </div>
+
+    <script>
+        function convertChips() {
+            const fromChip = parseInt(document.getElementById('fromChip').value);
+            const toChip = parseInt(document.getElementById('toChip').value);
+            const amount = parseInt(document.getElementById('amount').value);
+
+            const chipValues = [50, 25, 10, 5]; // Red, White, Blue, Black
+
+            const fromChipValue = fromChip * amount;
+            const fullChips = Math.floor(fromChipValue / toChip);
+            let remainder = fromChipValue % toChip;
+
+            let resultText = `You will get ${fullChips} ${getChipName(toChip)} `;
+            
+            if (remainder > 0) {
+                resultText += ` and ${breakDownRemainder(remainder, chipValues)}.`;
+            }
+
+            document.getElementById('result').innerHTML = resultText;
+        }
+
+        function getChipName(value) {
+            switch (value) {
+                case 50: return "Red";
+                case 25: return "White";
+                case 10: return "Blue";
+                case 5: return "Black";
+                default: return "";
+            }
+        }
+
+        function breakDownRemainder(remainder, chipValues) {
+            let breakdown = [];
+
+            for (let i = 0; i < chipValues.length; i++) {
+                let chips = Math.floor(remainder / chipValues[i]);
+                remainder = remainder % chipValues[i];
+
+                if (chips > 0) {
+                    breakdown.push(`${chips} ${getChipName(chipValues[i])}`);
+                }
+            }
+
+            return breakdown.join(', ');
+        }
+    </script>
+
+</body>
+</html>
