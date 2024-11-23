@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAAAAACPAi4CAAABlUlEQVR4nO3XyQ3CMBgGYHdBsbDCsYWi2zAYOkgzBLSDOiOzBNLDATcgm0M0smDckIXIM/YMsHgCTHvgL3a81msO8rl9+y4GDAyMhH/jgcn4wUz91+fu+E6iZnTmL8XIcTos6ebTBZ5zjjlJzQ4PPQ2OF7jKhfWfrnv7ohms46kpwd2ZXm5UFl9hdTstITyb7aYohSmGpeGyjGkqMxpdpxniWy4phMm4oh9wQdc2wAXGyTVIZpjpe6aZomKccZ0vZxHY21eKGuJhCmD81IJSl2HYaKdpchVSedRJHhzEuLjXopHqfjXqpbo7hoDS9oOJSiOhpfG6KYzKhjHKiHHEue8ImiZL+soZeqlK+FIg42N99prxeCrrEtSSXsy+9LVkxA3jpdsbbJYpjvQsbFoOiQHgYsYsRMp/0HgPYjiqj8cmNR/X/PMAZKRGzLeLBMAAAAASUVORK5CYII=">
+    <title>Force Map Maker</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Disable scrolling */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .controls, .force-input, .canvas-container, button, input {
+            max-width: 100%;
+        }
+
+        .controls {
+            margin-bottom: 10px;
+        }
+
+        .force-input {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px;
+        }
+
+        .force-input input {
+            width: 20%;
+            font-size: 16px;
+            padding: 5px;
+        }
+
+        .force-input input[type="number"] {
+            text-align: center;
+        }
+
+        .force-input button {
+            font-size: 16px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        button {
+            font-size: 18px;
+            padding: 10px;
+            margin: 5px;
+        }
+
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 400px;
+            max-height: 400px;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+        }
+
+        .center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background-color: black;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        input[type="text"]#labelInput {
+            width: 80%;
+            font-size: 16px;
+            padding: 5px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="font-size: 1.5em; margin-bottom: 10px;">Force Map Maker</h1>
+    <div class="controls">
+        <button id="addForce">+</button>
+        <button id="removeForce">-</button>
+        <br>
+        <input type="text" id="labelInput" placeholder="Enter map label..." maxlength="50">
+    </div>
+    <div id="forcesContainer"></div>
+    <div class="canvas-container">
+        <div class="center-dot"></div>
+        <canvas id="forceCanvas" width="400" height="400"></canvas>
+    </div>
+    <button id="download">Download Image</button>
+
+    <script>
+        const canvas = document.getElementById("forceCanvas");
+        const ctx = canvas.getContext("2d");
+        const forcesContainer = document.getElementById("forcesContainer");
+        const addForceButton = document.getElementById("addForce");
+        const removeForceButton = document.getElementById("removeForce");
+        const labelInput = document.getElementById("labelInput");
+        const downloadButton = document.getElementById("download");
+        const center = { x: canvas.width / 2, y: canvas.height / 2 };
+        const arrowSize = 10;
+        let forces = [];
+
+        function drawArrowhead(fromX, fromY, toX, toY) {
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - arrowSize * Math.cos(angle - Math.PI / 6), toY - arrowSize * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - arrowSize * Math.cos(angle + Math.PI / 6), toY - arrowSize * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = "black";
+            ctx.fill();
+        }
+
+        function drawForces() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const labelText = labelInput.value.trim();
+            if (labelText) {
+                ctx.font = "20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText(labelText, center.x, 20);
+            }
+
+            forces.forEach(({ length, angle, label }) => {
+                const radians = (angle * Math.PI) / 180;
+                const endX = center.x + length * 30 * Math.cos(radians);
+                const endY = center.y - length * 30 * Math.sin(radians);
+
+                ctx.beginPath();
+                ctx.moveTo(center.x, center.y);
+                ctx.lineTo(endX, endY);
+                ctx.strokeStyle = "black";
+                ctx.stroke();
+
+                drawArrowhead(center.x + length * 30 * 0.95 * Math.cos(radians), center.y - length * 30 * 0.95 * Math.sin(radians), endX, endY);
+
+                const labelX = center.x + (length * 30 + 15) * Math.cos(radians);
+                const labelY = center.y - (length * 30 + 15) * Math.sin(radians);
+                ctx.font = "bold 14px Arial";
+                ctx.fillText("F", labelX, labelY);
+                ctx.font = "10px Arial";
+                ctx.fillText(label, labelX + 8, labelY + 4);
+            });
+        }
+
+        function renderForceInputs() {
+            forcesContainer.innerHTML = "";
+            forces.forEach((force, i) => {
+                const div = document.createElement("div");
+                div.className = "force-input";
+                div.innerHTML = `
+                    <input type="number" min="1" max="10" step="0.1" value="${force.length}">
+                    <input type="number" min="0" max="360" value="${Math.round(force.angle)}">
+                    <input type="text" value="${force.label}" maxlength="3">
+                `;
+                div.querySelectorAll("input").forEach((input, idx) => {
+                    input.addEventListener("input", () => {
+                        if (idx === 0) force.length = parseFloat(input.value) || 1;
+                        if (idx === 1) force.angle = parseFloat(input.value) || 0;
+                        if (idx === 2) force.label = input.value.toUpperCase().slice(0, 3);
+                        drawForces();
+                    });
+                });
+                forcesContainer.appendChild(div);
+            });
+        }
+
+        addForceButton.addEventListener("click", () => {
+            forces.push({ length: 1, angle: Math.random() * 360, label: "" });
+            renderForceInputs();
+            drawForces();
+        });
+
+        removeForceButton.addEventListener("click", () => {
+            forces.pop();
+            renderForceInputs();
+            drawForces();
+        });
+
+        downloadButton.addEventListener("click", () => {
+            const link = document.createElement("a");
+            link.download = "force_map.png";
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        labelInput.addEventListener("input", drawForces);
+    </script>
+</body>
+</html>
