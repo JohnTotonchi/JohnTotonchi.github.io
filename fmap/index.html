@@ -1,5 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
@@ -13,7 +11,6 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Disable scrolling */
         }
 
         body {
@@ -137,11 +134,28 @@
             border: none;
             cursor: pointer;
         }
+
+        #jsonInputField {
+            width: 90%;
+            height: 100px;
+            padding: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+            font-family: monospace;
+            border: 1px solid #ddd;
+        }
+
+        #loadJSONButton {
+            margin-top: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
     <button id="darkModeToggle">🌞</button>
-    <h1 style="font-size: 1.5em; margin-bottom: 10px;">Free Body Diagram Maker</h1>
+    <h1 style="font-size: 1.5em; margin-bottom: 10px;">Force Map Maker</h1>
     <div class="controls">
         <button id="addForce">+</button>
         <button id="removeForce">-</button>
@@ -154,6 +168,13 @@
         <canvas id="forceCanvas" width="400" height="400"></canvas>
     </div>
     <button id="download">Download Image</button>
+    <button id="downloadJSON">Download JSON</button>
+    <input type="file" id="uploadJSON" style="display: none;" accept=".json">
+
+    <div>
+        <textarea id="jsonInputField" placeholder="Paste JSON here..."></textarea>
+        <button id="loadJSONButton">Load JSON</button>
+    </div>
 
     <script>
         const canvas = document.getElementById("forceCanvas");
@@ -163,7 +184,11 @@
         const removeForceButton = document.getElementById("removeForce");
         const labelInput = document.getElementById("labelInput");
         const downloadButton = document.getElementById("download");
+        const downloadJSONButton = document.getElementById("downloadJSON");
+        const uploadJSONInput = document.getElementById("uploadJSON");
         const darkModeToggle = document.getElementById("darkModeToggle");
+        const jsonInputField = document.getElementById("jsonInputField");
+        const loadJSONButton = document.getElementById("loadJSONButton");
         const center = { x: canvas.width / 2, y: canvas.height / 2 };
         const arrowSize = 10;
         let forces = [];
@@ -225,12 +250,14 @@
                 `;
                 div.querySelectorAll("input").forEach((input, idx) => {
                     input.addEventListener("input", () => {
-                        if (idx === 0) force.length = parseFloat(input.value) || 1;
+                        if (idx === 0) force.length = parseFloat(input.value);
                         if (idx === 1) {
-                            force.angle = parseFloat(input.value) || 0;
-                            div.querySelector("span").innerText = `${force.angle}°`;
+                            force.angle = parseInt(input.value);
+                            div.querySelector("span").textContent = `${force.angle}°`;
                         }
-                        if (idx === 2) force.label = input.value.toUpperCase().slice(0, 3);
+                        if (idx === 2) {
+                            force.label = input.value;
+                        }
                         drawForces();
                     });
                 });
@@ -239,22 +266,53 @@
         }
 
         addForceButton.addEventListener("click", () => {
-            forces.push({ length: 1, angle: 0, label: "" });
+            forces.push({ length: 2, angle: 0, label: "F" });
             renderForceInputs();
             drawForces();
         });
 
         removeForceButton.addEventListener("click", () => {
-            forces.pop();
-            renderForceInputs();
-            drawForces();
+            if (forces.length > 0) {
+                forces.pop();
+                renderForceInputs();
+                drawForces();
+            }
         });
 
         downloadButton.addEventListener("click", () => {
+            const dataURL = canvas.toDataURL("image/png");
             const link = document.createElement("a");
-            link.download = "force_map.png";
-            link.href = canvas.toDataURL();
+            link.href = dataURL;
+            link.download = "force-map.png";
             link.click();
+        });
+
+        downloadJSONButton.addEventListener("click", () => {
+            const blob = new Blob([JSON.stringify(forces)], { type: "application/json" });
+            const link = document.createElement("a");
+            link.download = "forces.json";
+            link.href = URL.createObjectURL(blob);
+            link.click();
+        });
+
+        uploadJSONInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file && file.type === "application/json") {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const json = JSON.parse(reader.result);
+                        forces = json;
+                        renderForceInputs();
+                        drawForces();
+                    } catch (error) {
+                        alert("Failed to load JSON");
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                alert("Please upload a valid JSON file.");
+            }
         });
 
         labelInput.addEventListener("input", drawForces);
@@ -266,7 +324,19 @@
             drawForces();
         });
 
+        loadJSONButton.addEventListener("click", () => {
+            try {
+                const jsonData = JSON.parse(jsonInputField.value);
+                forces = jsonData;
+                renderForceInputs();
+                drawForces();
+            } catch (error) {
+                alert("Invalid JSON format.");
+            }
+        });
+
         drawForces();
     </script>
+
+
 </body>
-</html>
