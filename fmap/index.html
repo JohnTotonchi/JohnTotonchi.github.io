@@ -23,6 +23,30 @@
             flex-direction: column;
             justify-content: flex-start;
             align-items: center;
+            background-color: white; /* Light mode default */
+            color: black; /* Text color */
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .dark-mode {
+            background-color: #121212;
+            color: white;
+        }
+
+        .dark-mode canvas {
+            background-color: #222;
+        }
+
+        .dark-mode input {
+            background-color: #333;
+            color: white;
+            border-color: #444;
+        }
+
+        .dark-mode button {
+            background-color: #444;
+            color: white;
+            border-color: #555;
         }
 
         .controls, .force-input, .canvas-container, button, input {
@@ -82,6 +106,8 @@
             max-width: 100%;
             height: auto;
             border: 1px solid #ddd;
+            background-color: white;
+            transition: background-color 0.3s;
         }
 
         .center-dot {
@@ -101,9 +127,20 @@
             padding: 5px;
             margin-bottom: 15px;
         }
+
+        #darkModeToggle {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <button id="darkModeToggle">🌞</button>
     <h1 style="font-size: 1.5em; margin-bottom: 10px;">Force Map Maker</h1>
     <div class="controls">
         <button id="addForce">+</button>
@@ -126,9 +163,11 @@
         const removeForceButton = document.getElementById("removeForce");
         const labelInput = document.getElementById("labelInput");
         const downloadButton = document.getElementById("download");
+        const darkModeToggle = document.getElementById("darkModeToggle");
         const center = { x: canvas.width / 2, y: canvas.height / 2 };
         const arrowSize = 10;
         let forces = [];
+        let isDarkMode = false;
 
         function drawArrowhead(fromX, fromY, toX, toY) {
             const angle = Math.atan2(toY - fromY, toX - fromX);
@@ -219,6 +258,15 @@
         });
 
         labelInput.addEventListener("input", drawForces);
+
+        darkModeToggle.addEventListener("click", () => {
+            isDarkMode = !isDarkMode;
+            document.body.classList.toggle("dark-mode", isDarkMode);
+            darkModeToggle.textContent = isDarkMode ? "🌙" : "🌞";
+            drawForces();
+        });
+
+        drawForces();
     </script>
 </body>
 </html>
