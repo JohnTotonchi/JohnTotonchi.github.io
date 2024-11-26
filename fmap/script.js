@@ -90,7 +90,7 @@
                     <input type="number" min="1" max="10" step="0.1" value="${force.length}">
                     <input type="range" min="0" max="360" step="15" value="${force.angle}">
                     <span>${force.angle}°</span>
-                    <input type="text" value="${force.label}" maxlength="3">
+                    <input type="text" value="${force.label}" maxlength="16">
                 `;
                 div.querySelectorAll("input").forEach((input, idx) => {
                     input.addEventListener("input", () => {
