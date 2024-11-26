@@ -31,13 +31,14 @@
             ctx.fill();
         }
 
-        function drawCenterDot() {
+/*
+         function drawCenterDot() {
             ctx.beginPath();
             ctx.arc(center.x, center.y, 3, 0, Math.PI * 2); // Draw a circle at the center
             ctx.fillStyle = "black"; // Set the fill color
             ctx.fill();
         }
-
+*/
 
         function drawForces() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
