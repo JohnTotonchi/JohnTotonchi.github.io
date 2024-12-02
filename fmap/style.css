@@ -205,3 +205,23 @@ input[type="text"]#labelInput {
 .close-popup.dark-mode {
     color: white;
 }
+
+/* Footer styles */
+footer {
+    background-color: #333; /* Dark background */
+    color: #fff; /* Light text for contrast */
+    text-align: center; /* Center-align text */
+    padding: 20px; /* Add some spacing */
+    font-size: 14px; /* Adjust text size */
+    margin-top: auto; /* Push footer to the bottom */
+    width: 100%;
+}
+
+footer a {
+    color: #4da8da; /* Light blue link */
+    text-decoration: none; /* Remove underline */
+}
+
+footer a:hover {
+    text-decoration: underline; /* Add underline on hover */
+}
