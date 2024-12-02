@@ -11,11 +11,12 @@ body {
     text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between; /* Ensures proper spacing between content and footer */
     align-items: center;
     background-color: white; /* Light mode default */
     color: black; /* Text color */
     transition: background-color 0.3s, color 0.3s;
+    min-height: 100vh; /* Ensures the body covers the full viewport height */
 }
 
 .dark-mode {
@@ -209,20 +210,26 @@ input[type="text"]#labelInput {
 
 /* Footer styles */
 footer {
-    background-color: #333; /* Dark background */
-    color: #fff; /* Light text for contrast */
+    background-color: #555; /* Less dramatic color (soft dark gray) */
+    color: #ddd; /* Light gray text for good contrast */
     text-align: center; /* Center-align text */
     padding: 20px; /* Add some spacing */
     font-size: 14px; /* Adjust text size */
-    margin-top: auto; /* Push footer to the bottom */
+    margin-top: 40px; /* Adds space between content and footer */
     width: 100%;
 }
 
 footer a {
-    color: #4da8da; /* Light blue link */
+    color: #88c0d0; /* Softer blue for links */
     text-decoration: none; /* Remove underline */
 }
 
 footer a:hover {
     text-decoration: underline; /* Add underline on hover */
+}
+
+/* Content spacing adjustment */
+main {
+    flex-grow: 1; /* Pushes the footer to the bottom if content is short */
+    padding-bottom: 40px; /* Adds space before the footer */
 }
