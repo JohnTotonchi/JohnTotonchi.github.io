@@ -1,81 +1,72 @@
-<!DOCTYPE html>
-<html>
 <head>
-   <!-- <style>
-        body {
-            background-color: #f2f2f2;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        h1 {
-            color: #4a4a4a;
-            text-align: center;
-            padding: 3rem 0;
-        }
-
-        h2 {
-            color: #6d6d6d;
-            text-align: center;
-            padding: 1rem 0;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: auto;
-        }
-
-        .project {
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin: 2rem;
-            padding: 2rem;
-            border-radius: 10px;
-        }
-
-        a {
-            text-decoration: none;
-            color: #008CBA;
-        }
-
-        a:hover {
-            color: #005580;
-        }
-    </style> -->
-<link href="/style.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/fmap/icon.png">
+    <title>Force Map Maker</title>
+    <link rel="stylesheet" type="text/css" href="/fmap/style.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9596419489122371"
+     crossorigin="anonymous"></script>
 </head>
 <body>
-    <h1>John Totonchi</h1>
-    <h2>Projects</h2>
-    <div class="callout-info">
-        <div class="project">
-            <a href="/bf">Basic "Bruteforce" generator</a>
-            <br>
-           <br>
-            <a href="/qf">Quadratic Formula + Discriminant solver</a>
-           <br>
-           <br>
-           <a href="/re">Simplifying Radical Expressions</a>
-           <br>
-           <br>
-           <a href="/ce">Alpha & Beta Decay Guide</a>
-           <br>
-           <br>
-           <a href="/solvebysqr">Solving by taking square roots guide</a>
-           <br>
-           <br>
-           <a href="/mjs">Physics "Game"</a>
-           <br>
-           <br>
-           Stuff not made by me:
-           <br>
-           <br>
-           <a href="/x3m">Motorcycle Game</a>
-           <br>
-           <br>
-           <a href="/bloxorz">Bloxorz</a>
-        </div>
+    <button id="infoButton" class="info-button">How to make AI do it for you?</button>
+    <div id="infoPopup" class="info-popup">
+        <button id="closePopup" class="close-popup">✖</button>
+        <p>Go to ChatGPT and type the following prompt:</p>
+        <code>Given the following description of a physical scenario, generate a valid JSON structure representing the forces acting on an object in the scenario. Each force should be described with the following properties:
+            1. length: A number between 1.0 and 5.0, representing the magnitude of the force (you may need to infer the strength from the description).
+            2. angle: A number between 0 and 360, representing the direction of the force in degrees (measured counterclockwise from the positive x-axis).
+            3. label: A string, up to 3 characters long, that represents the label for the force (e.g., "n" (for normal), "g (for gravity)", and whatever else is needed. or like stuff that could be inferred. i’d refrain from using numbers, unless there’s 2 of the same type of force.).
+            You do not need to explicitly list which forces are present. Instead, generate the forces based on the description of the physical scenario. For example, if an object is pulled by a rope, there might be a force in the direction of the rope's tension. If the object is on Earth, include a gravitational force.
+            Output the forces in the following JSON format:
+            
+            [
+                {
+                    "length": (number),
+                    "angle": (number),
+                    "label": "(string)"
+                },
+                ...
+            ]
+            
+            Notes for AI:
+            * The angle is measured counterclockwise from the positive x-axis (horizontal).
+            * length should reflect the relative strength of each force, estimated from the description.
+            * The label should be a short, unique identifier like "g", "n", etc., and must not exceed 3 characters. Remember, only use 3 characters if it’s not like friction or gravity or an actual existing force. 
+            * Feel free to include forces like tension, gravity, friction, etc., based on the description.
+            * IGNORE Components
+            
+            Here is the description:
+            
+            
+            </code>
+        <p>Then, either describe what is happening, or submit a picture of the problem. It will give you some "code". Copy this code and paste it into the "Paste JSON here..." box. Finally, click/tap the Load JSON button to make the diagram appear. </p>
     </div>
+    
+    <button id="darkModeToggle">🌞</button>
+    <h1 style="font-size: 1.5em; margin-bottom: 10px;">Force Map Maker</h1>
+    <div class="controls">
+        <button id="addForce">+</button>
+        <button id="removeForce">-</button>
+        <br>
+        <input type="text" id="labelInput" placeholder="Enter map label..." maxlength="50">
+    </div>
+    <div id="forcesContainer"></div>
+    <div class="canvas-container">
+        <div class="center-dot"></div>
+        <canvas id="forceCanvas" width="400" height="400"></canvas>
+    </div>
+    <button id="download">Download Image</button>
+    <button id="downloadJSON">Download JSON</button>
+    <input type="file" id="uploadJSON" style="display: none;" accept=".json">
+
+    <div>
+        <textarea id="jsonInputField" placeholder="Paste JSON here..."></textarea>
+        <button id="loadJSONButton">Load JSON</button>
+    </div>
+
+<script type="text/javascript" src="/fmap/script.js"></script>
+
+
 </body>
-</html>
