@@ -32,15 +32,14 @@
         }
 
 
-         function drawCenterDot() {
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, 3, 0, Math.PI * 2); // Draw a circle at the center
-            ctx.fillStyle = "black"; // Set the fill color
-            ctx.fill();
-        }
+function drawCenterDot() {
+    ctx.beginPath();
+    ctx.arc(center.x, center.y, 3, 0, Math.PI * 2); // Draw a small circle at the center
+    ctx.fillStyle = "black"; // Set the fill color
+    ctx.fill();
+}
 
-
-        function drawForces() {
+function drawForces() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const labelText = labelInput.value.trim();
@@ -80,6 +79,7 @@
     // Draw the center dot
     drawCenterDot();
 }
+
 
 
         function renderForceInputs() {
