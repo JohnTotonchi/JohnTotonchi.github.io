@@ -39,7 +39,103 @@ function drawCenterDot() {
     ctx.fill();
 }
 
+//heres where the new thing starts
+
 function drawForces() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const labelText = labelInput.value.trim();
+    if (labelText) {
+        ctx.font = "20px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText(labelText, center.x, 20);
+    }
+
+    // Draw all forces
+    forces.forEach(({ length, angle, label, showAngle }) => {
+        const radians = (angle * Math.PI) / 180;
+        const endX = center.x + length * 30 * Math.cos(radians);
+        const endY = center.y - length * 30 * Math.sin(radians);
+
+        // Draw force line
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+
+        // Draw arrowhead
+        drawArrowhead(
+            center.x + length * 30 * 0.95 * Math.cos(radians),
+            center.y - length * 30 * 0.95 * Math.sin(radians),
+            endX,
+            endY
+        );
+
+        // Position for force label
+        const labelX = center.x + (length * 30 + 15) * Math.cos(radians);
+        const labelY = center.y - (length * 30 + 15) * Math.sin(radians);
+
+        ctx.font = "bold 14px Arial";
+        ctx.fillText("F", labelX, labelY);
+        ctx.font = "10px Arial";
+        ctx.fillText(label, labelX + 8, labelY + 4);
+
+        // Position for angle label
+        if (showAngle) {
+            const angleLabelX = center.x + (length * 15) * Math.cos(radians + Math.PI / 4);
+            const angleLabelY = center.y - (length * 15) * Math.sin(radians + Math.PI / 4);
+            ctx.font = "12px Arial";
+            ctx.fillText(`${angle}°`, angleLabelX, angleLabelY);
+        }
+    });
+
+    // Draw the center dot
+    drawCenterDot();
+}
+
+function renderForceInputs() {
+    forcesContainer.innerHTML = "";
+    forces.forEach((force, i) => {
+        const div = document.createElement("div");
+        div.className = "force-input";
+        div.innerHTML = `
+            <input type="number" min="1" max="10" step="0.1" value="${force.length}">
+            <input type="range" min="0" max="360" step="15" value="${force.angle}">
+            <span>${force.angle}°</span>
+            <input type="text" value="${force.label}" maxlength="16">
+            <label>
+                <input type="checkbox" ${force.showAngle ? "checked" : ""}> Show Angle
+            </label>
+        `;
+        div.querySelectorAll("input").forEach((input, idx) => {
+            input.addEventListener("input", () => {
+                if (idx === 0) force.length = parseFloat(input.value);
+                if (idx === 1) {
+                    force.angle = parseInt(input.value);
+                    div.querySelector("span").textContent = `${force.angle}°`;
+                }
+                if (idx === 2) {
+                    force.label = input.value;
+                }
+                if (idx === 3) {
+                    force.showAngle = input.checked;
+                }
+                drawForces();
+            });
+        });
+        forcesContainer.appendChild(div);
+    });
+}
+
+addForceButton.addEventListener("click", () => {
+    forces.push({ length: 2, angle: 0, label: "F", showAngle: false });
+    renderForceInputs();
+    drawForces();
+});
+
+
+/*function drawForces() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const labelText = labelInput.value.trim();
@@ -115,7 +211,7 @@ function drawForces() {
             renderForceInputs();
             drawForces();
         });
-
+*/
         removeForceButton.addEventListener("click", () => {
             if (forces.length > 0) {
                 forces.pop();
