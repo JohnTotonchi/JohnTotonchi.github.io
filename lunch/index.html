@@ -80,7 +80,7 @@
 
     // Immediately invoked function to load menu items
     (function loadMenuItems() {
-      const url = "https://rss.app/feeds/v1.1/OupEdF0HrLJcCZ9Y.json"; // Use your API URL here
+      const url = "https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fbrrice.tandem.co%2Findex.php%3Ftype%3Dexport%26action%3Drss%26export_type%3Dmenus"; // Use your API URL here
       fetch(url)
         .then(response => response.json())
         .then(jsonData => {
