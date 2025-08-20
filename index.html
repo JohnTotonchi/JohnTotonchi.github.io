@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="iScribeWeb - Speech-to-Text Transcription PWA">
+    <meta name="theme-color" content="#007bff">
+    <title>iScribeWeb - Speech-to-Text Transcription</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+    
+    <!-- Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS support -->
+    <link rel="apple-touch-icon" href="img/icons/icon-192x192.png">
+    <meta name="apple-mobile-web-app-status-bar" content="#007bff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="img/icons/icon-32x32.png">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Welcome Screen (Initial Screen) -->
+        <div id="welcome-screen" class="app-screen active">
+            <div class="container text-center py-5">
+                <h1 class="mb-4">iScribeWeb</h1>
+                <p class="lead mb-4">Speech-to-Text Transcription Service</p>
+                <div class="card mx-auto" style="max-width: 500px;">
+                    <div class="card-body">
+                        <h5 class="card-title">Get Started</h5>
+                        <p class="card-text">Scan a QR code to connect to the Speech-to-Text API server.</p>
+                        <button id="start-scan-btn" class="btn btn-primary">Scan QR Code</button>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-muted">Already connected? <a href="#" id="goto-dashboard">Go to Dashboard</a></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Scanner Screen -->
+        <div id="scanner-screen" class="app-screen">
+            <div class="container py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button class="btn btn-outline-secondary btn-sm back-btn">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 class="mb-0">Scan QR Code</h2>
+                    <div style="width: 40px;"></div> <!-- Spacer for alignment -->
+                </div>
+                
+                <div class="card mx-auto mb-3" style="max-width: 500px;">
+                    <div class="card-body p-0">
+                        <div id="qr-scanner-container">
+                            <video id="qr-video" class="w-100"></video>
+                        </div>
+                        <div id="qr-result" class="p-3 d-none">
+                            <div class="alert alert-success">
+                                <h5>Connection Successful!</h5>
+                                <p id="qr-result-text" class="mb-0"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button id="toggle-camera-btn" class="btn btn-outline-primary mb-2">Switch Camera</button>
+                    <p class="text-muted small">Position the QR code within the scanner frame.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Screen -->
+        <div id="dashboard-screen" class="app-screen">
+            <div class="container py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="mb-0">Dashboard</h2>
+                    <button id="settings-btn" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-gear"></i> Settings
+                    </button>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">New Transcription</h5>
+                        <div class="d-flex gap-2">
+                            <button id="record-audio-btn" class="btn btn-primary flex-grow-1">
+                                <i class="bi bi-mic"></i> Record Audio
+                            </button>
+                            <button id="upload-audio-btn" class="btn btn-outline-primary flex-grow-1">
+                                <i class="bi bi-upload"></i> Upload File
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <h5 class="mb-3">Recent Transcripts</h5>
+                <div id="transcripts-list" class="list-group mb-3">
+                    <div class="text-center py-4 text-muted" id="no-transcripts-message">
+                        <p>No transcripts yet</p>
+                    </div>
+                    <!-- Transcript items will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Recording Screen -->
+        <div id="recording-screen" class="app-screen">
+            <div class="container py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button class="btn btn-outline-secondary btn-sm back-btn">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 class="mb-0">Record Audio</h2>
+                    <div style="width: 40px;"></div> <!-- Spacer for alignment -->
+                </div>
+                
+                <div class="card mx-auto mb-3" style="max-width: 500px;">
+                    <div class="card-body text-center">
+                        <div id="recording-visualization" class="mb-3">
+                            <div class="audio-wave">
+                                <div class="audio-wave-bar"></div>
+                                <div class="audio-wave-bar"></div>
+                                <div class="audio-wave-bar"></div>
+                                <div class="audio-wave-bar"></div>
+                                <div class="audio-wave-bar"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="recording-timer" class="display-4 mb-3">00:00</div>
+                        
+                        <div class="d-flex justify-content-center gap-3">
+                            <button id="start-recording-btn" class="btn btn-danger btn-lg rounded-circle">
+                                <i class="bi bi-record-circle"></i>
+                            </button>
+                            <button id="stop-recording-btn" class="btn btn-outline-secondary btn-lg rounded-circle d-none">
+                                <i class="bi bi-stop-circle"></i>
+                            </button>
+                            <button id="play-recording-btn" class="btn btn-outline-primary btn-lg rounded-circle d-none">
+                                <i class="bi bi-play-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="recording-actions" class="d-none">
+                    <div class="d-grid gap-2">
+                        <button id="upload-recording-btn" class="btn btn-primary">
+                            <i class="bi bi-cloud-upload"></i> Upload for Transcription
+                        </button>
+                        <button id="discard-recording-btn" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Discard Recording
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transcript Detail Screen -->
+        <div id="transcript-detail-screen" class="app-screen">
+            <div class="container py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button class="btn btn-outline-secondary btn-sm back-btn">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 class="mb-0">Transcript</h2>
+                    <button id="export-transcript-btn" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-download"></i> Export
+                    </button>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 id="transcript-title" class="card-title">Transcript #12345</h5>
+                        <p id="transcript-date" class="text-muted">August 20, 2025</p>
+                        <div id="transcript-status" class="mb-3">
+                            <span class="badge bg-success">Completed</span>
+                        </div>
+                        
+                        <div id="transcript-content">
+                            <div id="transcript-full-text" class="mb-3">
+                                <h6>Full Transcript</h6>
+                                <p class="transcript-text"></p>
+                            </div>
+                            
+                            <div id="transcript-segments">
+                                <h6>Segments by Speaker</h6>
+                                <div class="transcript-segments-list">
+                                    <!-- Segments will be added here dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settings-screen" class="app-screen">
+            <div class="container py-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button class="btn btn-outline-secondary btn-sm back-btn">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </button>
+                    <h2 class="mb-0">Settings</h2>
+                    <div style="width: 40px;"></div> <!-- Spacer for alignment -->
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">API Connection</h5>
+                        <div id="api-connection-details">
+                            <p class="text-muted">Not connected</p>
+                            <button id="scan-new-qr-btn" class="btn btn-primary">Scan New QR Code</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">App Settings</h5>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="dark-mode-toggle">
+                            <label class="form-check-label" for="dark-mode-toggle">Dark Mode</label>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="offline-mode-toggle" checked>
+                            <label class="form-check-label" for="offline-mode-toggle">Enable Offline Mode</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Installation</h5>
+                        <p>Add iScribeWeb to your home screen for a better experience.</p>
+                        <div id="install-instructions">
+                            <div class="alert alert-info">
+                                <h6>How to Install:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>iOS:</strong> Tap the share icon, then "Add to Home Screen"</li>
+                                    <li><strong>Android:</strong> Tap the menu button, then "Add to Home Screen"</li>
+                                    <li><strong>Desktop Chrome:</strong> Click the install icon in the address bar</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <button id="install-pwa-btn" class="btn btn-primary d-none">Install App</button>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">About</h5>
+                        <p>iScribeWeb v1.0.0</p>
+                        <p class="text-muted">A Progressive Web App for Speech-to-Text transcription.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="d-none">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p id="loading-message" class="text-light mt-2">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jsQR Library for QR Code Scanning -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    
+    <!-- Application Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/qrScanner.js"></script>
+    <script src="js/audioRecorder.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker registered:', reg))
+                    .catch(err => console.log('Service Worker registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
