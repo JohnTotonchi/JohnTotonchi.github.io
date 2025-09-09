@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>RSVVP Reader (One-file)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root{
+      --panel-bg: #0f172a;
+      --panel-border: #1e293b;
+      --stage-bg: #0b1022;
+      --accent: #7dd3fc;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --progress-bg: rgba(255,255,255,0.08);
+    }
+    *{ box-sizing: border-box; }
+    body{
+      margin: 0;
+      background: #0b1022;
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      line-height: 1.3;
+    }
+    header{
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--panel-border);
+      background: linear-gradient(to right, #0b1022, #0f172a);
+    }
+    header h1{ font-size: 18px; margin: 0; }
+    main{ padding: 16px; display: grid; gap: 16px; max-width: 1200px; margin: 0 auto; }
+    .grid{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    @media(min-width: 980px){
+      .grid{
+        grid-template-columns: 400px 1fr;
+      }
+    }
+    .panel{
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .panel h2{
+      margin: 0 0 12px 0;
+      font-size: 14px;
+      color: var(--muted);
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .row{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .row > label{ font-size: 13px; color: var(--text); }
+    .row small{ color: var(--muted); }
+    .controls{
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .input, select, textarea{
+      width: 100%;
+      background: #0b1022;
+      color: var(--text);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+    input[type="color"]{
+      padding: 0; border: none; background: transparent;
+      width: 36px; height: 28px;
+    }
+    input[type="range"]{ width: 220px; }
+    .toggle{
+      display: inline-flex; align-items: center; gap: 8px; font-size: 13px;
+    }
+    .btn-bar{
+      display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;
+    }
+    button{
+      appearance: none; border: 1px solid var(--panel-border);
+      background: #0b1022; color: var(--text);
+      padding: 8px 12px; border-radius: 8px; font-size: 14px; cursor: pointer;
+    }
+    button.primary{ border-color: #0ea5e9; background: #0ea5e933; }
+    button:disabled{ opacity: 0.6; cursor: not-allowed; }
+
+    /* Stage */
+    .stage{
+      background: var(--stage-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 14px;
+      display: grid; gap: 10px;
+    }
+    .stage-top{
+      display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center;
+    }
+    .stats{
+      font-size: 12px; color: var(--muted);
+      display: flex; gap: 14px; align-items: center;
+    }
+    .progress-wrap{
+      height: 8px; border-radius: 6px; background: var(--progress-bg);
+      overflow: hidden; width: 220px;
+    }
+    .progress{
+      height: 100%; width: 0%;
+      background: #a3e635;
+      transition: width 100ms linear;
+    }
+
+    /* The reading viewport */
+    .reader{
+      position: relative;
+      height: 180px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: radial-gradient(ellipse at center, rgba(255,255,255,0.04), rgba(255,255,255,0.02) 45%, transparent 70%);
+      border: 1px solid var(--panel-border);
+    }
+    .reader:fullscreen, .reader:-webkit-full-screen{
+      width: 100vw;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+    }
+    /* Background text (follows the word) */
+    .bg-container{
+      position: absolute; inset: 0; overflow: hidden; pointer-events: auto;
+    }
+    .bg-inner{
+      position: absolute; left: 0; top: 0;
+      transform: translate(0px, 0px);
+      transition: transform 160ms ease-out; /* smooth follow */
+      opacity: 0.35;
+      color: #d1d5db;
+      font-variant-ligatures: none;
+      white-space: pre; /* preserve spaces/newlines, no wrapping */
+      line-height: 1.6;
+      padding: 24px;
+      user-select: none;
+      /* Match focus word font for 1:1 sizing */
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+    .bg-word{
+      display: inline-block;
+      padding: 1px 2px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .bg-word.active{
+      background: rgba(255, 255, 255, 0.18);
+      color: #ffffff;
+      opacity: 0.65;
+    }
+    /* Foreground RSVP word (centered) */
+    .focus{
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      pointer-events: none;
+    }
+    .focus .word{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #ffffff;
+      text-shadow: 0 0 18px rgba(0,0,0,0.5);
+      will-change: contents;
+      transform: translateZ(0);
+    }
+    .focus .pivot{
+      color: #ff4444;
+    }
+    .help{
+      font-size: 12px; color: var(--muted);
+    }
+    .kbd{
+      display: inline-block; padding: 1px 6px; border: 1px solid var(--panel-border); border-bottom-width: 3px;
+      border-radius: 6px; font-family: ui-monospace, monospace; font-size: 12px; margin: 0 2px; background: #0b1022;
+    }
+    textarea{
+      min-height: 160px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RSVVP Reader</h1>
+  </header>
+  <main class="grid">
+    <!-- Controls -->
+    <section class="panel">
+      <h2>Controls</h2>
+      <div class="controls">
+        <div class="row">
+          <label>Speed (WPM): <small id="wpmLabel">500</small></label>
+          <input id="wpm" type="range" min="100" max="1200" step="10" value="500" />
+        </div>
+        <div class="row">
+          <label>Font size (px): <small id="fontSizeLabel">48</small></label>
+          <input id="fontSize" type="range" min="20" max="96" step="1" value="48" />
+        </div>
+        <div class="row">
+          <label>Start delay (ms)</label>
+          <input id="startDelay" class="input" type="number" min="0" max="5000" step="50" value="700" />
+        </div>
+        <div class="row">
+          <label>End delay (ms)</label>
+          <input id="endDelay" class="input" type="number" min="0" max="5000" step="50" value="400" />
+        </div>
+
+        <div class="row">
+          <label>Punctuation x • + (ms)</label>
+          <div>
+            <input id="punctMult" class="input" type="number" min="1" max="4" step="0.1" value="2.5" style="width:86px" />
+            <input id="punctAdd" class="input" type="number" min="0" max="800" step="10" value="0" style="width:86px" />
+          </div>
+        </div>
+        <div class="row">
+          <label>Symbols x • + (ms)</label>
+          <div>
+            <input id="symbMult" class="input" type="number" min="1" max="4" step="0.1" value="1.5" style="width:86px" />
+            <input id="symbAdd" class="input" type="number" min="0" max="800" step="10" value="0" style="width:86px" />
+          </div>
+        </div>
+        <div class="row">
+          <label>Punctuation chars</label>
+          <input id="punctuation" class="input" type="text" value=".,!?;:" />
+        </div>
+        <div class="row">
+          <label>Symbol chars</label>
+          <input id="symbols" class="input" type="text" value="0123456789`~@#$%^&amp;*()-_=+[{]}\\|'&quot;&lt;&gt;/" />
+        </div>
+
+        <div class="row">
+          <label class="toggle"><input id="showStatus" type="checkbox" checked /> Show status</label>
+          <label class="toggle"><input id="showTime" type="checkbox" checked /> Show time</label>
+        </div>
+        <div class="row">
+          <label class="toggle"><input id="showProgress" type="checkbox" checked /> Show progress</label>
+          <span></span>
+        </div>
+
+        <div class="row">
+          <label>Word color</label>
+          <input id="wordColor" type="color" value="#ffffff" />
+        </div>
+        <div class="row">
+          <label>Pivot color</label>
+          <input id="pivotColor" type="color" value="#ff4444" />
+        </div>
+        <div class="row">
+          <label>Progress color</label>
+          <input id="progressColor" type="color" value="#a3e635" />
+        </div>
+        <div class="row">
+          <label>Background opacity: <small id="bgOpacityLabel">0.35</small></label>
+          <input id="bgOpacity" type="range" min="0.05" max="1" step="0.01" value="0.35" />
+        </div>
+
+        <div class="btn-bar">
+          <button id="btnStart" class="primary">Start</button>
+          <button id="btnPlayPause">Play</button>
+          <button id="btnStop">Stop</button>
+          <button id="btnPaste">Paste</button>
+          <button id="btnSample">Sample</button>
+          <button id="btnReset">Reset</button>
+        </div>
+        <div class="help">
+          <span class="kbd">Space</span> play/pause • <span class="kbd">Esc</span> exit fullscreen (or stop if not in fullscreen) • Click any word behind the focus to jump.
+        </div>
+      </div>
+    </section>
+
+    <!-- Reader + Input -->
+    <section class="stage">
+      <div class="stage-top">
+        <div class="stats">
+          <span id="status">Ready</span>
+          <span id="time" title="Estimated reading time">—</span>
+          <div class="progress-wrap" id="progressWrap" style="display:flex"><div class="progress" id="progress"></div></div>
+        </div>
+        <div class="btn-bar">
+          <button id="btnFullscreen" title="Toggle fullscreen for the reader">Fullscreen</button>
+        </div>
+      </div>
+
+      <div class="reader" id="reader">
+        <div class="bg-container">
+          <div class="bg-inner" id="bgInner"></div>
+        </div>
+        <div class="focus">
+          <div class="word" id="focusWord" style="font-size:48px"></div>
+        </div>
+      </div>
+
+      <div>
+        <label for="text"><strong>Input text</strong></label>
+        <textarea id="text" class="input" placeholder="Paste or type your text here..."></textarea>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Settings state
+    const settings = {
+      wpm: 500,
+      startDelay: 700,
+      endDelay: 400,
+      punctMult: 2.5,
+      punctAdd: 0,
+      symbMult: 1.5,
+      symbAdd: 0,
+      showStatus: true,
+      showTime: true,
+      showProgress: true,
+      fontSize: 48,
+      wordColor: '#ffffff',
+      pivotColor: '#ff4444',
+      progressColor: '#a3e635',
+      bgOpacity: 0.35,
+      punctuation: ".,!?;:",
+      symbols: "0123456789`~@#$%^&*()-_=+[{]}\\|'\"<>/"
+    };
+
+    // UI elements
+    const els = {
+      wpm: document.getElementById('wpm'),
+      fontSize: document.getElementById('fontSize'),
+      startDelay: document.getElementById('startDelay'),
+      endDelay: document.getElementById('endDelay'),
+      punctMult: document.getElementById('punctMult'),
+      punctAdd: document.getElementById('punctAdd'),
+      symbMult: document.getElementById('symbMult'),
+      symbAdd: document.getElementById('symbAdd'),
+      punctuation: document.getElementById('punctuation'),
+      symbols: document.getElementById('symbols'),
+      showStatus: document.getElementById('showStatus'),
+      showTime: document.getElementById('showTime'),
+      showProgress: document.getElementById('showProgress'),
+      wordColor: document.getElementById('wordColor'),
+      pivotColor: document.getElementById('pivotColor'),
+      progressColor: document.getElementById('progressColor'),
+      bgOpacity: document.getElementById('bgOpacity'),
+
+      wpmLabel: document.getElementById('wpmLabel'),
+      fontSizeLabel: document.getElementById('fontSizeLabel'),
+      bgOpacityLabel: document.getElementById('bgOpacityLabel'),
+
+      btnStart: document.getElementById('btnStart'),
+      btnPlayPause: document.getElementById('btnPlayPause'),
+      btnStop: document.getElementById('btnStop'),
+      btnPaste: document.getElementById('btnPaste'),
+      btnSample: document.getElementById('btnSample'),
+      btnReset: document.getElementById('btnReset'),
+      btnFullscreen: document.getElementById('btnFullscreen'),
+
+      status: document.getElementById('status'),
+      time: document.getElementById('time'),
+      progress: document.getElementById('progress'),
+      progressWrap: document.getElementById('progressWrap'),
+
+      reader: document.getElementById('reader'),
+      bgInner: document.getElementById('bgInner'),
+      focusWord: document.getElementById('focusWord'),
+      text: document.getElementById('text'),
+    };
+
+    // Utility
+    function includeAny(word, chars) {
+      for (let i = 0; i < chars.length; i++) {
+        if (word.includes(chars[i])) return true;
+      }
+      return false;
+    }
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+    function isTypingTarget(el) {
+      return el && (el.tagName === 'TEXTAREA' ||
+                    (el.tagName === 'INPUT' && /^(text|search|url|email|number|password|tel)$/i.test(el.type)) ||
+                    el.isContentEditable);
+    }
+
+    // Reader logic
+    class RSVVP {
+      constructor(els, settings) {
+        this.els = els;
+        this.settings = settings;
+        this.words = [];     // [{text, span, delay}]
+        this.index = 0;
+        this.timer = null;
+        this.playing = false;
+        this.totalTime = 0;
+        this.spentTime = 0;
+        this.prevActiveSpan = null;
+        this.startIndex = 0; // index to start from if \start\ marker is present
+      }
+
+      setText(text) {
+        this.stop(true);
+        this.els.bgInner.style.transform = 'translate(0px, 0px)';
+        this.els.bgInner.innerHTML = '';
+        this.words = [];
+        this.index = 0;
+        this.spentTime = 0;
+        this.totalTime = 0;
+        this.startIndex = 0;
+
+        const MARK = "\\start\\";
+        const re = /([^\s]+)|(\s+)/g;
+        let m;
+        let idx = 0;
+        let startSet = false;
+
+        while ((m = re.exec(text)) !== null) {
+          if (m[1]) {
+            let token = m[1];
+            if (token === MARK) {
+              if (!startSet) { this.startIndex = idx; startSet = true; }
+              // don't render or count the marker as a word
+              continue;
+            }
+            const span = document.createElement('span');
+            span.className = 'bg-word';
+            span.textContent = token;
+            span.dataset.index = String(idx);
+            span.addEventListener('click', () => {
+              const i = Number(span.dataset.index);
+              this.seek(i, true); // begin/resume there
+            });
+            this.els.bgInner.appendChild(span);
+            this.words.push({ text: token, span, delay: 0 });
+            idx++;
+          } else if (m[2]) {
+            this.els.bgInner.appendChild(document.createTextNode(m[2]));
+          }
+        }
+
+        this.recalcDelays();
+        // Jump to startIndex (if any) and set spent time accordingly
+        this.index = clamp(this.startIndex, 0, Math.max(0, this.words.length - 1));
+        this.spentTime = this.spentUpTo(this.index);
+
+        this.updateTimeEstimate();
+        this.updateProgress(0);
+        this.renderCurrentWord();
+      }
+
+      spentUpTo(i){
+        let s = 0;
+        for (let k = 0; k < i; k++) s += this.words[k]?.delay || 0;
+        return s;
+      }
+
+      recalcDelays() {
+        const s = this.settings;
+        const charDelay = 60000 / (s.wpm * 5); // ~5 chars per word
+        let total = 0;
+        for (let i = 0; i < this.words.length; i++) {
+          const w = this.words[i];
+          let delay = Math.max(w.text.length, 5) * charDelay;
+          if (includeAny(w.text, s.punctuation)) {
+            delay = delay * s.punctMult + s.punctAdd;
+          } else if (includeAny(w.text, s.symbols)) {
+            delay = delay * s.symbMult + s.symbAdd;
+          }
+          w.delay = delay;
+          total += delay;
+        }
+        this.totalTime = total;
+        // keep spentTime consistent with current index
+        this.spentTime = this.spentUpTo(this.index);
+      }
+
+      pivotSplit(word) {
+        if (!word || !word.length) return {a:'', b:'', c:''};
+        const middle = Math.floor(((word.length % 2 === 0) ? word.length - 1 : word.length) / 2);
+        return { a: word.slice(0, middle), b: word[middle] || '', c: word.slice(middle + 1) };
+      }
+
+      renderCurrentWord() {
+        const wordObj = this.words[this.index] || { text: '' };
+        const { a, b, c } = this.pivotSplit(wordObj.text);
+        const fs = this.settings.fontSize;
+
+        // Match sizes and colors for focus and background
+        this.els.focusWord.style.fontSize = fs + 'px';
+        this.els.bgInner.style.fontSize = fs + 'px';
+        this.els.focusWord.style.color = this.settings.wordColor;
+        this.els.focusWord.innerHTML = `${escapeHTML(a)}<span class="pivot" style="color:${this.settings.pivotColor}">${escapeHTML(b)}</span>${escapeHTML(c)}`;
+
+        // BG active highlight
+        if (this.prevActiveSpan) this.prevActiveSpan.classList.remove('active');
+        if (wordObj.span) {
+          wordObj.span.classList.add('active');
+          this.prevActiveSpan = wordObj.span;
+        } else {
+          this.prevActiveSpan = null;
+        }
+
+        // Pan background so current word is centered
+        this.centerBackgroundOnWord(this.index);
+      }
+
+      centerBackgroundOnWord(i) {
+        const span = this.words[i]?.span;
+        if (!span) return;
+        const cont = this.els.reader.querySelector('.bg-container');
+        const inner = this.els.bgInner;
+
+        const sx = span.offsetLeft + span.offsetWidth / 2;
+        const sy = span.offsetTop + span.offsetHeight / 2;
+
+        const cw = cont.clientWidth;
+        const ch = cont.clientHeight;
+
+        const tx = (cw / 2) - sx;
+        const ty = (ch / 2) - sy;
+
+        inner.style.transform = `translate(${tx}px, ${ty}px)`;
+      }
+
+      updateProgress(delta) {
+        this.spentTime = clamp(this.spentTime + delta, 0, this.totalTime);
+        if (!this.settings.showProgress) return;
+        const pct = this.totalTime > 0 ? (100 * this.spentTime / this.totalTime) : 0;
+        this.els.progress.style.width = `${pct}%`;
+        this.els.progress.style.background = this.settings.progressColor;
+      }
+
+      updateTimeEstimate() {
+        if (!this.settings.showTime) {
+          this.els.time.style.display = 'none';
+          return;
+        }
+        this.els.time.style.display = '';
+
+        const t = this.totalTime || 0;
+        let str;
+        if (t < 60000) str = `${Math.ceil(t / 100) / 10}s total`;
+        else str = `${Math.ceil(t / 6000) / 10}m total`;
+        this.els.time.textContent = this.words.length ? str : '—';
+      }
+
+      setStatus(msg) {
+        if (!this.settings.showStatus) {
+          this.els.status.style.display = 'none';
+          return;
+        }
+        this.els.status.style.display = '';
+        this.els.status.textContent = msg;
+      }
+
+      play() {
+        if (this.playing || !this.words.length) return;
+        this.playing = true;
+        this.setStatus('Starting...');
+        this.renderCurrentWord();
+        clearTimeout(this.timer);
+        const delay = Math.max(0, Number(this.settings.startDelay) || 0);
+        this.timer = setTimeout(() => {
+          this.setStatus('');
+          this.loop();
+        }, delay);
+        updatePlayBtn();
+      }
+
+      loop() {
+        if (!this.playing) return;
+        if (this.index >= this.words.length) {
+          this.finish();
+          return;
+        }
+        const w = this.words[this.index];
+        this.renderCurrentWord();
+
+        const d = w.delay || 0;
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          this.updateProgress(d);
+          this.index++;
+          this.loop();
+        }, d);
+      }
+
+      pause() {
+        if (!this.playing) return;
+        this.playing = false;
+        clearTimeout(this.timer);
+        this.setStatus('Paused');
+        updatePlayBtn();
+      }
+
+      stop(silent=false) {
+        clearTimeout(this.timer);
+        this.playing = false;
+        // Reset to the defined startIndex (supports \startKATEX_INLINE_CLOSE, not hard 0
+        this.index = clamp(this.startIndex, 0, Math.max(0, this.words.length - 1));
+        this.spentTime = this.spentUpTo(this.index);
+        this.updateProgress(0);
+        this.renderCurrentWord();
+        if (!silent) this.setStatus('Stopped');
+        updatePlayBtn();
+      }
+
+      finish() {
+        this.playing = false;
+        clearTimeout(this.timer);
+        const endDelay = Math.max(0, Number(this.settings.endDelay) || 0);
+        this.setStatus('Finished');
+        setTimeout(() => {}, endDelay);
+        updatePlayBtn();
+      }
+
+      toggle() {
+        if (this.playing) this.pause();
+        else this.play();
+      }
+
+      seek(i, autoResume=false) {
+        i = clamp(i, 0, this.words.length - 1);
+        this.index = i;
+        this.spentTime = this.spentUpTo(this.index);
+        this.renderCurrentWord();
+        this.updateProgress(0);
+        if (autoResume) {
+          if (this.playing) {
+            clearTimeout(this.timer);
+            this.loop();
+          } else {
+            this.play();
+          }
+        }
+      }
+    }
+
+    // Escape helper for focus word HTML
+    function escapeHTML(s) {
+      return String(s).replace(/[&<>"']/g, (m) => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+      }[m]));
+    }
+
+    // Instantiate
+    const reader = new RSVVP(els, settings);
+
+    // Bind control changes
+    function bindControls() {
+      // Range labels
+      const syncLabels = () => {
+        els.wpmLabel.textContent = els.wpm.value;
+        els.fontSizeLabel.textContent = els.fontSize.value;
+        els.bgOpacityLabel.textContent = Number(els.bgOpacity.value).toFixed(2);
+      };
+      syncLabels();
+
+      const applyUIToSettings = () => {
+        settings.wpm = Number(els.wpm.value);
+        settings.fontSize = Number(els.fontSize.value);
+        settings.startDelay = Number(els.startDelay.value);
+        settings.endDelay = Number(els.endDelay.value);
+        settings.punctMult = Number(els.punctMult.value);
+        settings.punctAdd = Number(els.punctAdd.value);
+        settings.symbMult = Number(els.symbMult.value);
+        settings.symbAdd = Number(els.symbAdd.value);
+        settings.punctuation = String(els.punctuation.value || '');
+        settings.symbols = String(els.symbols.value || '');
+        settings.showStatus = !!els.showStatus.checked;
+        settings.showTime = !!els.showTime.checked;
+        settings.showProgress = !!els.showProgress.checked;
+        settings.wordColor = els.wordColor.value;
+        settings.pivotColor = els.pivotColor.value;
+        settings.progressColor = els.progressColor.value;
+        settings.bgOpacity = Number(els.bgOpacity.value);
+
+        // Apply immediately
+        els.bgInner.style.opacity = settings.bgOpacity;
+        els.progressWrap.style.display = settings.showProgress ? 'flex' : 'none';
+        els.progress.style.background = settings.progressColor;
+
+        reader.updateTimeEstimate();
+        reader.renderCurrentWord(); // apply colors/size immediately
+      };
+
+      const onInput = () => {
+        syncLabels();
+        applyUIToSettings();
+        reader.recalcDelays();
+        reader.updateTimeEstimate();
+      };
+
+      [
+        els.wpm, els.fontSize, els.startDelay, els.endDelay, els.punctMult, els.punctAdd,
+        els.symbMult, els.symbAdd, els.punctuation, els.symbols,
+        els.showStatus, els.showTime, els.showProgress,
+        els.wordColor, els.pivotColor, els.progressColor,
+        els.bgOpacity
+      ].forEach(el => {
+        el.addEventListener('input', onInput);
+        el.addEventListener('change', onInput);
+      });
+
+      // Buttons
+      els.btnStart.addEventListener('click', () => {
+        if (!els.text.value.trim()) {
+          reader.setStatus('Paste some text to start.');
+          return;
+        }
+        reader.setText(els.text.value);
+        reader.play();
+      });
+
+      els.btnPlayPause.addEventListener('click', () => reader.toggle());
+      els.btnStop.addEventListener('click', () => reader.stop());
+
+      els.btnReset.addEventListener('click', () => {
+        // Reset controls to defaults
+        els.wpm.value = 500;
+        els.fontSize.value = 48;
+        els.startDelay.value = 700;
+        els.endDelay.value = 400;
+        els.punctMult.value = 2.5;
+        els.punctAdd.value = 0;
+        els.symbMult.value = 1.5;
+        els.symbAdd.value = 0;
+        els.punctuation.value = ".,!?;:";
+        els.symbols.value = "0123456789`~@#$%^&*()-_=+[{]}\\|'\"<>/";
+        els.showStatus.checked = true;
+        els.showTime.checked = true;
+        els.showProgress.checked = true;
+        els.wordColor.value = '#ffffff';
+        els.pivotColor.value = '#ff4444';
+        els.progressColor.value = '#a3e635';
+        els.bgOpacity.value = 0.35;
+        onInput();
+      });
+
+      els.btnSample.addEventListener('click', () => {
+        els.text.value =
+`This is an RSVVP (RSVP + following paragraph) demo.
+Use \\start\\ to mark where reading should begin.
+
+Some intro text you might want to skip...
+\\start\\
+Your input text appears behind the focus word with lower opacity, and it pans so the current word is centered.
+- Click a word in the background to start from there.
+- Press Space to play/pause, Esc to exit fullscreen (or stop if not in fullscreen).
+- Adjust WPM, font size, and punctuation delays to taste.`;
+      });
+
+      els.btnPaste.addEventListener('click', async () => {
+        try {
+          const t = await navigator.clipboard.readText();
+          if (t) els.text.value = t;
+        } catch (e) {
+          alert('Clipboard read failed (browser permission). Paste manually.');
+        }
+      });
+
+      // Fullscreen button (for the reader area)
+      els.btnFullscreen.addEventListener('click', toggleFullscreen);
+      document.addEventListener('fullscreenchange', updateFSButton);
+
+      // Keyboard shortcuts: Space = toggle, Esc = exit FS or stop
+      document.addEventListener('keydown', (e) => {
+        if (isTypingTarget(document.activeElement)) return; // don't steal keystrokes from inputs
+        if (e.code === 'Space') {
+          e.preventDefault();
+          reader.toggle();
+        } else if (e.code === 'Escape') {
+          e.preventDefault();
+          if (document.fullscreenElement) {
+            document.exitFullscreen?.();
+          } else {
+            reader.stop();
+          }
+        }
+      });
+
+      // Apply initial UI settings immediately
+      applyUIToSettings();
+      updateFSButton();
+    }
+
+    function updatePlayBtn() {
+      els.btnPlayPause.textContent = reader.playing ? 'Pause' : 'Play';
+    }
+
+    function updateFSButton(){
+      els.btnFullscreen.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+    }
+
+    function toggleFullscreen(){
+      const el = els.reader;
+      if (!document.fullscreenElement) {
+        el.requestFullscreen?.();
+      } else {
+        document.exitFullscreen?.();
+      }
+    }
+
+    // Initialize
+    bindControls();
+    // Seed example text (with a start marker)
+    els.text.value =
+`RSVVP reader demo. Add \\start\\ anywhere to begin from there when you press Start.
+
+Warm-up text that will be skipped on Start if you keep the marker below...
+\\start\\
+Now reading begins here. The paragraph behind follows the current word and keeps it centered.
+Click any word to jump there. Use Space to play/pause, and Esc to exit fullscreen or stop.`;
+
+    // When the input changes, update background (but don't auto-play)
+    let rebuildTimer = null;
+    els.text.addEventListener('input', () => {
+      clearTimeout(rebuildTimer);
+      rebuildTimer = setTimeout(() => {
+        if (els.text.value.trim()) {
+          reader.setText(els.text.value);
+          reader.setStatus('Ready');
+        } else {
+          reader.setStatus('Paste some text to start.');
+          reader.stop(true);
+          els.bgInner.innerHTML = '';
+          els.focusWord.textContent = '';
+          els.progress.style.width = '0%';
+          els.time.textContent = '—';
+        }
+      }, 150);
+    });
+
+    // Build once with initial text
+    reader.setText(els.text.value);
+
+  </script>
+</body>
+</html>
