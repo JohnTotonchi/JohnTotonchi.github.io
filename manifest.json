@@ -1,0 +1,19 @@
+{
+  "name": "RSVVP Reader",
+  "short_name": "RSVVP",
+  "id": ".",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#0b1022",
+  "theme_color": "#0b1022",
+  "description": "An RSVP/RSVVP reader with configurable controls and background-following text.",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
