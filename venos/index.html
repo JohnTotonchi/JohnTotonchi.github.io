@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Country Guessing Game — North America & Caribbean</title>
+
+<!-- amCharts 5 -->
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/geodata/worldLow.js"></script>
+
+<style>
+  :root{
+    --bg:#071028; --panel:#0b1220; --text:#e6eef8;
+    --red:#ef4444; --green:#22c55e; --muted:#9ca3af;
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;}
+  body{background:linear-gradient(180deg,#041225,#071028);color:var(--text);}
+
+  #chartdiv{width:100%;height:100vh;box-sizing:border-box;}
+
+  .topbar{position:fixed;right:16px;top:16px;z-index:999;display:flex;gap:8px;align-items:center;}
+  button#resetBtn{background:#0f1724;border:1px solid rgba(255,255,255,.04);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer;}
+  .counter{background:rgba(255,255,255,0.02);padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);color:var(--muted);font-size:13px;}
+
+  .modal-backdrop{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:none;align-items:center;justify-content:center;z-index:1000;}
+  .modal{background:linear-gradient(180deg,#071220,#0b1220);padding:18px;border-radius:12px;min-width:320px;max-width:520px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 12px 40px rgba(2,6,23,0.6);}
+  .modal h2{margin:0 0 8px 0;font-size:18px;}
+  .hint{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;letter-spacing:.16em;background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;border:1px dashed rgba(255,255,255,0.03);}
+  input[type="text"]{width:100%;margin-top:10px;padding:10px;border-radius:8px;background:#061223;border:1px solid rgba(255,255,255,0.03);color:var(--text);outline:none;font-size:14px;}
+  .row{display:flex;gap:8px;margin-top:10px;align-items:center;justify-content:flex-end;}
+  .feedback{min-height:20px;color:var(--muted);font-size:13px;margin-top:8px;}
+  button.primary{background:linear-gradient(180deg,#0ea5b7,#0891b2);border:none;padding:8px 12px;border-radius:8px;color:#041220;cursor:pointer;}
+  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px 10px;border-radius:8px;color:var(--text);cursor:pointer;}
+  .legend{position:fixed;left:12px;bottom:12px;background:rgba(255,255,255,0.02);padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);display:flex;gap:10px;align-items:center;font-size:13px;color:var(--muted);}
+  .sw{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,0.4)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="counter" id="progress">0 / 17 correct</div>
+  <button id="resetBtn" title="Reset progress">Reset</button>
+</div>
+
+<div id="chartdiv" aria-label="Interactive map of selected countries"></div>
+
+<div class="legend" aria-hidden="true">
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div class="sw" style="background:var(--green)"></div><div style="color:var(--text)">Named</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div class="sw" style="background:var(--red)"></div><div style="color:var(--muted)">Not named</div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" role="document" onclick="event.stopPropagation()">
+    <h2 id="modalTitle">Type the country name</h2>
+    <div class="hint" id="hintBar">----</div>
+    <input id="answerInput" type="text" placeholder="Type the country name and press Enter or Submit" autocomplete="off" />
+    <div class="feedback" id="feedback" aria-live="polite"></div>
+    <div class="row">
+      <button class="ghost" id="closeModal">Close</button>
+      <button class="primary" id="submitBtn">Submit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+am5.ready(function() {
+  const ENABLED_IDS = ["GL","CA","US","MX","GT","BZ","HN","SV","NI","CR","PA","JM","CU","HT","DO","PR","BS"];
+  const ALT_NAMES = {
+    "US": ["usa","america","united states","united states of america","u s a"],
+    "BS": ["bahamas","the bahamas"],
+    "PR": ["puerto rico","borinquen","boriken"],
+    "GL": ["greenland","kalaallit nunaat"]
+  };
+
+  const state = new Map();
+  const polygonById = new Map();
+  let activeId = null;
+
+  const modal = document.getElementById("modalBackdrop");
+  const input = document.getElementById("answerInput");
+  const hintBar = document.getElementById("hintBar");
+  const feedback = document.getElementById("feedback");
+  const submitBtn = document.getElementById("submitBtn");
+  const closeBtn = document.getElementById("closeModal");
+  const resetBtn = document.getElementById("resetBtn");
+  const progressEl = document.getElementById("progress");
+
+  function clean(s){ return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9 ]+/g,"").replace(/\s+/g," ").trim(); }
+  function allowedVariants(id,name){ const set = new Set([ clean(name) ]); if(ALT_NAMES[id]) ALT_NAMES[id].forEach(a=>set.add(clean(a))); return set; }
+  function levenshtein(a,b){ const m=a.length,n=b.length; if(m===0) return n; if(n===0) return m; const dp=Array(n+1).fill(0).map((_,j)=>j); for(let i=1;i<=m;i++){ let prev=dp[0]; dp[0]=i; for(let j=1;j<=n;j++){ const tmp=dp[j]; dp[j]=Math.min(dp[j]+1,dp[j-1]+1,prev+(a[i-1]===b[j-1]?0:1)); prev=tmp; } } return dp[n]; }
+  function fuzzyMatch(user, set){ const u=clean(user); if(!u) return false; if(set.has(u)) return true; for(const c of set){ const tol=Math.min(3,Math.max(1,Math.round(c.length*0.2))); if(levenshtein(u,c)<=tol) return true; } return false; }
+  function buildMask(rec){ return rec.chars.map((ch,i)=>/[a-z]/i.test(ch)?(rec.revealed[i]?ch.toUpperCase():"—"):ch).join(""); }
+  function revealNext(rec){ const indices = []; for(let i=0;i<rec.chars.length;i++){ if(/[a-z]/i.test(rec.chars[i])&&!rec.revealed[i]) indices.push(i); } if(indices.length===0) return null; const pick = indices[Math.floor(Math.random()*indices.length)]; rec.revealed[pick]=true; return pick; }
+  function allRevealed(rec){ return !rec.chars.some((ch,i)=>/[a-z]/i.test(ch)&&!rec.revealed[i]); }
+  function updateProgressUI(){ const total = state.size; const correct = Array.from(state.values()).filter(r=>r.guessed).length; progressEl.textContent = `${correct} / ${total} correct`; }
+
+  const root = am5.Root.new("chartdiv");
+  root.setThemes([ am5.Theme.new(root) ]);
+  const chart = root.container.children.push(am5map.MapChart.new(root,{panX:"translateX",panY:"translateY",wheelY:"zoom",projection:am5map.geoMercator()}));
+
+  const defaultRed = am5.color(0xef4444);
+  const correctGreen = am5.color(0x22c55e);
+  const hoverColor = am5.color(0x4466aa);
+
+  const polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root,{geoJSON:am5geodata_worldLow,include:ENABLED_IDS}));
+
+  polygonSeries.mapPolygons.template.setAll({tooltipText:"",interactive:true,fill:defaultRed,stroke:am5.color(0x071220),strokeWidth:0.9});
+
+  // Hover only applies to unguessed countries
+  polygonSeries.mapPolygons.template.events.on("pointerover", function(ev){
+    const id = ev.target.dataItem.get("id");
+    const rec = state.get(id);
+    if(!rec.guessed) ev.target.set("fill", hoverColor);
+  });
+  polygonSeries.mapPolygons.template.events.on("pointerout", function(ev){
+    const id = ev.target.dataItem.get("id");
+    const rec = state.get(id);
+    if(!rec.guessed) ev.target.set("fill", defaultRed);
+  });
+
+  polygonSeries.events.on("datavalidated", function() {
+    polygonSeries.mapPolygons.each(poly => {
+      const id = poly.dataItem.get("id");
+      const name = poly.dataItem.dataContext && poly.dataItem.dataContext.name ? poly.dataItem.dataContext.name : String(id);
+      polygonById.set(id, poly);
+      if(!state.has(id)){
+        const chars = Array.from(name);
+        const revealed = new Array(chars.length).fill(false);
+        state.set(id,{id,originalName:name,chars,revealed,guessed:false,accepted:allowedVariants(id,name)});
+      }
+      const rec = state.get(id);
+      poly.set("fill", rec.guessed ? correctGreen : defaultRed);
+    });
+    chart.zoomToGeoPoint({longitude:-80,latitude:25},2.5);
+    updateProgressUI();
+  });
+
+  function openModal(id){ activeId=id; const rec=state.get(id); hintBar.textContent=buildMask(rec); feedback.textContent=""; input.value=""; modal.style.display="flex"; setTimeout(()=>input.focus(),40); }
+  function closeModal(){ modal.style.display="none"; activeId=null; feedback.textContent=""; }
+
+  document.querySelector(".modal").addEventListener("click", e=>e.stopPropagation());
+  modal.addEventListener("click", closeModal);
+  closeBtn.addEventListener("click", closeModal);
+
+  polygonSeries.mapPolygons.template.events.on("click", ev=>{ const id=ev.target.dataItem.get("id"); openModal(id); });
+
+  function handleSubmit(){
+    if(!activeId) return;
+    const rec = state.get(activeId);
+    const guess = input.value.trim();
+    if(!guess){ feedback.textContent="Please type a guess."; return; }
+    if(fuzzyMatch(guess, rec.accepted)){
+      rec.guessed = true;
+      const poly = polygonById.get(activeId);
+      if(poly) poly.set("fill", correctGreen);
+      feedback.textContent="✅ Correct — well done!";
+      updateProgressUI();
+      setTimeout(closeModal,500);
+    } else {
+      const idx = revealNext(rec);
+      hintBar.textContent = buildMask(rec);
+      if(idx===null||allRevealed(rec)) feedback.textContent=`ℹ️ The answer is revealed: ${rec.originalName.toUpperCase()}`;
+      else feedback.textContent="❌ Not correct — a letter has been revealed.";
+    }
+    input.focus();
+    input.select();
+  }
+
+  input.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); handleSubmit(); } if(e.key==="Escape"){ closeModal(); } });
+  submitBtn.addEventListener("click", handleSubmit);
+  resetBtn.addEventListener("click", function(){
+    for(const [id,rec] of state){ rec.guessed=false; rec.revealed=new Array(rec.chars.length).fill(false); const poly=polygonById.get(id); if(poly) poly.set("fill", defaultRed); }
+    updateProgressUI(); closeModal();
+  });
+  window.addEventListener("keydown", (e)=>{ if(e.key==="Escape") closeModal(); });
+
+  updateProgressUI();
+});
+</script>
+</body>
+</html>
